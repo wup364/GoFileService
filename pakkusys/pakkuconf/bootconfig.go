@@ -11,6 +11,7 @@
 package pakkuconf
 
 import (
+	"fileservice/biz/modules/asynctask"
 	"fileservice/biz/modules/bootstart"
 	"fileservice/biz/modules/filedatas"
 	"fileservice/biz/modules/filepermission"
@@ -26,6 +27,7 @@ func RegisterModules() []ipakku.Template {
 		new(user4rpc.User4RPC),
 		new(filedatas.FileDatas),
 		new(filepermission.FilePermission),
+		new(asynctask.AsyncTask),
 		new(htmlpage.HTMLPage),
 		new(bootstart.BootStart),
 	}

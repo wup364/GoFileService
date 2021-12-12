@@ -18,9 +18,10 @@ import (
 )
 
 const (
-	StreamTokenType_Read  = 0
-	StreamTokenType_Write = 1
-	CacheLib_StreamToken  = "FileStransport:Token"
+	StreamTokenType_Read     = 0
+	StreamTokenType_Write    = 1
+	CacheLib_StreamToken     = "FileStransport:Token"
+	CacheLib_StreamToken_Exp = 60 * 10
 )
 
 // ErrInvalidToken 无效的token

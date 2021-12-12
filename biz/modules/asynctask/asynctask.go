@@ -15,46 +15,51 @@ import (
 	"errors"
 	"fileservice/biz/service"
 	"pakku/ipakku"
+	"pakku/utils/logs"
 )
 
-// AsyncTasks 文件异步操作
-type AsyncTasks struct {
-	actions map[string]service.AsyncTask
+// AsyncTask 文件异步操作
+type AsyncTask struct {
+	c       ipakku.AppCache `@autowired:"AppCache"`
+	actions map[string]service.AsyncTaskExecI
 }
 
 // Pakku 模块加载器接口实现, 返回模块信息&配置
-func (m *AsyncTasks) Pakku() ipakku.Opts {
+func (m *AsyncTask) Pakku() ipakku.Opts {
 	return ipakku.Opts{
-		Name:        "AsyncTasks",
+		Name:        "AsyncTask",
 		Version:     1.0,
 		Description: "异步动作模块",
 		OnReady: func(mctx ipakku.Loader) {
 			m.AddTaskObject(new(CopyFile).Init(mctx))
 			m.AddTaskObject(new(MoveFile).Init(mctx))
 		},
-		OnSetup: func() {},
-		OnInit:  func() {},
+		OnInit: func() {
+			if err := m.c.RegLib(service.CacheLib_AsyncTaskToken, service.CacheLib_AsyncTaskToken_Exp); nil != err {
+				logs.Panicln(err)
+			}
+
+		},
 	}
 }
 
 // GetTaskObject 获取asynctask实例
-func (asynctasks *AsyncTasks) GetTaskObject(name string) (service.AsyncTask, error) {
-	if len(name) == 0 || nil == asynctasks.actions {
+func (m *AsyncTask) GetTaskObject(name string) (service.AsyncTaskExec, error) {
+	if len(name) == 0 || len(m.actions) == 0 {
 		return nil, errors.New(name + " not supported")
 	}
-	val, ok := asynctasks.actions[name]
-	if ok {
+	if val, ok := m.actions[name]; ok {
 		return val, nil
 	}
 	return nil, errors.New(name + " not supported")
 }
 
 // AddTaskObject 注册asynctask实例
-func (asynctasks *AsyncTasks) AddTaskObject(task service.AsyncTask) {
-	if nil == asynctasks.actions {
-		asynctasks.actions = make(map[string]service.AsyncTask, 0)
+func (m *AsyncTask) AddTaskObject(task service.AsyncTaskExecI) {
+	if nil == m.actions {
+		m.actions = make(map[string]service.AsyncTaskExecI)
 	}
 	if len(task.Name()) > 0 {
-		asynctasks.actions[task.Name()] = task
+		m.actions[task.Name()] = task
 	}
 }

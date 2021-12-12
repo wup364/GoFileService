@@ -52,7 +52,7 @@ func (dto *CopyFileTokenObject) ToJSON() string {
 type CopyFile struct {
 	c     ipakku.AppCache             `@autowired:"AppCache"`
 	fm    service.FileDatas           `@autowired:"FileDatas"`
-	sg    service.UserAuth4Rpc        `@autowired:"User4Rpc"`
+	sg    service.UserAuth4Rpc        `@autowired:"User4RPC"`
 	pmc   service.FilePermissionCheck `@autowired:"FilePermission"`
 	token *TaskToken
 }
@@ -63,7 +63,7 @@ func (task CopyFile) Name() string {
 }
 
 // Init 初始化对象
-func (task *CopyFile) Init(mctx ipakku.Loader) service.AsyncTask {
+func (task *CopyFile) Init(mctx ipakku.Loader) service.AsyncTaskExecI {
 	if err := mctx.AutoWired(task); nil != err {
 		logs.Panicln(err)
 	}
@@ -111,18 +111,24 @@ func (task *CopyFile) Execute(r *http.Request) (string, error) {
 		copyDirErr := task.doCopy(qSrcPath, qDstPath, qReplace, qIgnore, func(s_src, s_dst string, copyErr *CopyError) error {
 			// 获取令牌数据, 不存在则说明已经销毁
 			var tokenBody *CopyFileTokenObject
-			if token, err := task.getTokenObject(token); nil != err {
+			if tokenObj, err := task.getTokenObject(token); nil != err {
 				return err
-			} else if token.IsDiscontinue {
+			} else if tokenObj.IsDiscontinue {
 				return service.ErrorDiscontinue
 			} else {
-				tokenBody = token
+				tokenBody = tokenObj
+				tokenBody.IsIgnore = false
+				tokenBody.IsReplace = false
+				tokenBody.IsSrcExist = false
+				tokenBody.IsDstExist = false
+				tokenBody.ErrorString = ""
+				tokenBody.Src = s_src
+				tokenBody.Dst = s_dst
+				// 更新缓存
+				if err := task.token.RefreshToken(token, tokenBody); nil != err {
+					logs.Errorln(err)
+				}
 			}
-			tokenBody.IsSrcExist = false
-			tokenBody.IsDstExist = false
-			tokenBody.ErrorString = ""
-			tokenBody.Src = s_src
-			tokenBody.Dst = s_dst
 			// 如果遇到错误了
 			if nil != copyErr {
 				// 判断是否是目标位置已经存在的错误, 如果是的话需要选择是否覆盖他
@@ -157,6 +163,10 @@ func (task *CopyFile) Execute(r *http.Request) (string, error) {
 				if len(tokenBody.ErrorString) == 0 {
 					tokenBody.ErrorString = copyErr.ErrorString
 				}
+				// 更新缓存-抛出错误
+				if err := task.token.RefreshToken(token, tokenBody); nil != err {
+					logs.Errorln(err)
+				}
 				for {
 					// 循环读取最想指令
 					if token, err := task.getTokenObject(token); nil != err {
@@ -168,25 +178,23 @@ func (task *CopyFile) Execute(r *http.Request) (string, error) {
 					}
 					// 选择了忽略|忽略全部
 					if tokenBody.IsIgnore || tokenBody.IsIgnoreAll {
-						if tokenBody.IsIgnore {
-							tokenBody.IsIgnore = false // 一次性的
-						}
 						return nil
 					}
 					// 选择了覆盖|覆盖全部
 					if tokenBody.IsReplace || tokenBody.IsReplaceAll {
-						if tokenBody.IsReplace {
-							tokenBody.IsReplace = false // 一次性的
-						}
 						if copyErr.SrcIsExist {
 							// 先删除然后再替换
-							if reCopyErr := task.doCopy(s_src, s_dst, true, false, nil); nil != reCopyErr {
-								tokenBody.ErrorString = reCopyErr.Error()
-							} else {
+							if reCopyErr := task.doCopy(s_src, s_dst, true, false, nil); nil == reCopyErr {
 								return nil
+							} else {
+								tokenBody.ErrorString = reCopyErr.Error()
 							}
 						} else {
 							tokenBody.ErrorString = fileutil.PathNotExist("replace", s_src).Error()
+						}
+						// 更新缓存-抛出错误
+						if err := task.token.RefreshToken(token, tokenBody); nil != err {
+							logs.Errorln(err)
 						}
 					}
 					time.Sleep(time.Duration(100) * time.Millisecond) // 休眠100ms
@@ -204,6 +212,9 @@ func (task *CopyFile) Execute(r *http.Request) (string, error) {
 			}
 			tokenBody.IsComplete = true
 			tokenBody.IsDiscontinue = service.ErrorDiscontinue.Error() == tokenBody.ErrorString
+			if err := task.token.RefreshToken(token, tokenBody); nil != err {
+				logs.Errorln(err)
+			}
 		} else {
 			logs.Errorln(err)
 		}
@@ -329,7 +340,6 @@ func (task *CopyFile) Status(w http.ResponseWriter, r *http.Request) {
 			tokenBody.ErrorString = ""
 			tokenBody.IsComplete = true
 			tokenBody.IsDiscontinue = true
-			// fsapi.fm.RemoveToken(qToken)
 		default:
 			serviceutil.SendBadRequest(w, service.ErrorOprationFailed.Error())
 			return

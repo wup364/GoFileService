@@ -16,15 +16,27 @@ import (
 )
 
 const (
-	CacheLib_AsyncTaskToken = "AsyncTask:TaskToken"
+	CacheLib_AsyncTaskToken     = "AsyncTask:TaskToken"
+	CacheLib_AsyncTaskToken_Exp = 30
 )
 
 // AsyncTask 接口
 type AsyncTask interface {
-	Name() string                                  // 动作名字
-	Init(mctx ipakku.Loader) AsyncTask             // 初始化对象
+	GetTaskObject(name string) (AsyncTaskExec, error)
+	AddTaskObject(task AsyncTaskExecI)
+}
+
+// AsyncTaskExec 异步执行器调用接口
+type AsyncTaskExec interface {
 	Execute(r *http.Request) (string, error)       // 动作执行, 返回一个tooken
 	Status(w http.ResponseWriter, r *http.Request) // 查询动作状态, 在内部返回数据
+}
+
+// AsyncTaskExecI 异步执行器实现接口
+type AsyncTaskExecI interface {
+	Name() string                           // 动作名字
+	Init(mctx ipakku.Loader) AsyncTaskExecI // 初始化对象
+	AsyncTaskExec
 }
 
 // ErrorDiscontinue ErrorDiscontinue

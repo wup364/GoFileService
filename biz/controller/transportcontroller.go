@@ -47,8 +47,8 @@ func (ctl *TransportCtrl) RouterList() ipakku.RouterConfig {
 		Group:     "v1",
 		ToToLower: true,
 		HandlerFunc: [][]interface{}{
-			{"GET", ctl.Read},
-			{"ANY", ctl.Put},
+			{"GET", "read/:" + `[\s\S]*`, ctl.Read},
+			{"ANY", "put/:" + `[\s\S]*`, ctl.Put},
 			{"GET", ctl.Token},
 		}}
 }

@@ -23,12 +23,20 @@ import (
 	"path"
 )
 
+// NewFileOptsCtrl NewFileOptsCtrl
+func NewFileOptsCtrl(fm service.FileDatas, sg service.UserAuth4Rpc, pms service.FilePermissionCheck) *FileOptsCtrl {
+	return &FileOptsCtrl{
+		fm:  fm,
+		sg:  sg,
+		pms: pms,
+	}
+}
+
 // FileOptsCtrl 文件操作接口
 type FileOptsCtrl struct {
-	fm service.FileDatas
-	sg service.UserAuth4Rpc
-	// ast  *asynctask.AsyncTasks
-	fpms service.FilePermissionCheck
+	fm  service.FileDatas
+	sg  service.UserAuth4Rpc
+	pms service.FilePermissionCheck
 }
 
 // RouterList 实现 AsRouter 接口
@@ -42,14 +50,12 @@ func (ctl *FileOptsCtrl) RouterList() ipakku.RouterConfig {
 			{"DELETE", ctl.Del},
 			{"POST", ctl.ReName},
 			{"POST", ctl.NewFolder},
-			// {"POST", ctl.AsyncExec},
-			// {"POST", ctl.AsyncExecToken},
 		}}
 }
 
 // checkPermision 检查权限
 func (ctl *FileOptsCtrl) checkPermision(userID, path string, permission int64) bool {
-	return ctl.fpms.HashPermission(userID, path, permission)
+	return ctl.pms.HashPermission(userID, path, permission)
 }
 
 // GetUserID4Request 获取登录用户
@@ -191,30 +197,3 @@ func (ctl *FileOptsCtrl) NewFolder(w http.ResponseWriter, r *http.Request) {
 		serviceutil.SendServerError(w, err.Error())
 	}
 }
-
-// // AsyncExec 发起一个异步操作, 返回一个可以查询的tooken
-// func (ctl *FileOptsCtrl) AsyncExec(w http.ResponseWriter, r *http.Request) {
-// 	name := r.FormValue("func")
-// 	executor, err := ctl.ast.GetTaskObject(name)
-// 	if nil != err {
-// 		serviceutil.SendServerError(w, err.Error())
-// 		return
-// 	}
-// 	token, err := executor.Execute(r)
-// 	if nil != err {
-// 		serviceutil.SendServerError(w, err.Error())
-// 		return
-// 	}
-// 	serviceutil.SendSuccess(w, token)
-// }
-
-// // AsyncExecToken 查询由AsyncExec返回的token状态
-// func (ctl *FileOptsCtrl) AsyncExecToken(w http.ResponseWriter, r *http.Request) {
-// 	name := r.FormValue("func")
-// 	executor, err := ctl.ast.GetTaskObject(name)
-// 	if nil != err {
-// 		serviceutil.SendServerError(w, err.Error())
-// 		return
-// 	}
-// 	executor.Status(w, r)
-// }
