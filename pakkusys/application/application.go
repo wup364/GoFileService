@@ -154,12 +154,18 @@ func (boot *PakkuBoot) BootStartWeb(debug bool) {
 	// bootstart
 	boot.EnableCoreModule().EnableNetModule().BootStart()
 	boot.GetApplication().SetParam("AppService.debug", debug)
-	//
+	// 获取appservice接口
 	var config ipakku.AppConfig
 	var service ipakku.AppService
 	boot.GetModule(&config, &service)
 	address := config.GetConfig("listen.http.address").ToString("127.0.0.1:8080")
 	boot.GetApplication().SetParam("listen.http.address", address)
+	// 注册controller
+	for _, v := range pakkuconf.RegisterController() {
+		if err := service.AsController(v); nil != err {
+			logs.Panicln(err)
+		}
+	}
 	// 启动服务
 	certFile, keyFile := getCertFile()
 	service.StartHTTP(ipakku.HTTPServiceConfig{

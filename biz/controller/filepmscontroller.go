@@ -21,33 +21,33 @@ import (
 	"strconv"
 )
 
-// NewFilePermissionCtrl NewFilePermissionCtrl
-func NewFilePermissionCtrl(um service.UserAuth4Rpc, pms service.FilePermission) *FilePermissionCtrl {
-	return &FilePermissionCtrl{
-		um:  um,
-		pms: pms,
-	}
-}
-
 // FilePermissionCtrl 用户权限管理
 type FilePermissionCtrl struct {
-	um  service.UserAuth4Rpc
-	pms service.FilePermission
+	um  service.UserAuth4Rpc   `@autowired:"User4RPC"`
+	pms service.FilePermission `@autowired:"FilePermission"`
 }
 
-// RouterList 实现 AsRouter 接口
-func (ctl *FilePermissionCtrl) RouterList() ipakku.RouterConfig {
-	return ipakku.RouterConfig{
-		Group:     "v1",
-		ToToLower: true,
-		HandlerFunc: [][]interface{}{
-			{"GET", ctl.ListFPermissions},
-			{"POST", ctl.GetUserPermissionSum},
-			{"GET", ctl.ListUserFPermissions},
-			{"POST", ctl.AddFPermission},
-			{"DELETE", ctl.DelFPermission},
-			{"POST", ctl.UpdateFPermission},
-		}}
+// AsController 实现 AsController 接口
+func (ctl *FilePermissionCtrl) AsController() ipakku.ControllerConfig {
+	return ipakku.ControllerConfig{
+		RequestMapping: "/filepms/v1",
+		RouterConfig: ipakku.RouterConfig{
+			ToLowerCase: true,
+			HandlerFunc: [][]interface{}{
+				{"GET", ctl.ListFPermissions},
+				{"POST", ctl.GetUserPermissionSum},
+				{"GET", ctl.ListUserFPermissions},
+				{"POST", ctl.AddFPermission},
+				{"DELETE", ctl.DelFPermission},
+				{"POST", ctl.UpdateFPermission},
+			},
+		},
+		FilterConfig: ipakku.FilterConfig{
+			FilterFunc: [][]interface{}{
+				{`/:[\s\S]*`, ctl.um.GetAuthFilterFunc()},
+			},
+		},
+	}
 }
 
 // checkPermission 检查是否是管理员

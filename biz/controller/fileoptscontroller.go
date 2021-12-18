@@ -21,47 +21,50 @@ import (
 	"pakku/utils/serviceutil"
 	"pakku/utils/strutil"
 	"path"
+	"strings"
 )
-
-// NewFileOptsCtrl NewFileOptsCtrl
-func NewFileOptsCtrl(fm service.FileDatas, sg service.UserAuth4Rpc, pms service.FilePermissionCheck) *FileOptsCtrl {
-	return &FileOptsCtrl{
-		fm:  fm,
-		sg:  sg,
-		pms: pms,
-	}
-}
 
 // FileOptsCtrl 文件操作接口
 type FileOptsCtrl struct {
-	fm  service.FileDatas
-	sg  service.UserAuth4Rpc
-	pms service.FilePermissionCheck
+	fm  service.FileDatas           `@autowired:"FileDatas"`
+	um  service.UserAuth4Rpc        `@autowired:"User4RPC"`
+	pms service.FilePermissionCheck `@autowired:"FilePermission"`
 }
 
-// RouterList 实现 AsRouter 接口
-func (ctl *FileOptsCtrl) RouterList() ipakku.RouterConfig {
-	return ipakku.RouterConfig{
-		Group:     "v1",
-		ToToLower: true,
-		HandlerFunc: [][]interface{}{
-			{"GET", ctl.Info},
-			{"GET", ctl.List},
-			{"DELETE", ctl.Del},
-			{"POST", ctl.ReName},
-			{"POST", ctl.NewFolder},
-		}}
+// AsController 实现 AsController 接口
+func (ctl *FileOptsCtrl) AsController() ipakku.ControllerConfig {
+	return ipakku.ControllerConfig{
+		RequestMapping: "/file/v1",
+		RouterConfig: ipakku.RouterConfig{
+			ToLowerCase: true,
+			HandlerFunc: [][]interface{}{
+				{"GET", ctl.Info},
+				{"GET", ctl.List},
+				{"DELETE", ctl.Del},
+				{"POST", ctl.ReName},
+				{"POST", ctl.NewFolder},
+			},
+		},
+		FilterConfig: ipakku.FilterConfig{
+			FilterFunc: [][]interface{}{
+				{`/:[\s\S]*`, ctl.um.GetAuthFilterFunc()},
+			},
+		},
+	}
 }
 
 // checkPermision 检查权限
 func (ctl *FileOptsCtrl) checkPermision(userID, path string, permission int64) bool {
+	if len(path) == 0 || !strings.HasPrefix(path, "/") {
+		return false
+	}
 	return ctl.pms.HashPermission(userID, path, permission)
 }
 
 // GetUserID4Request 获取登录用户
 func (ctl *FileOptsCtrl) GetUserID4Request(r *http.Request) string {
-	if askstr := ctl.sg.GetAccessKey4Request(r); len(askstr) > 0 {
-		if ack, err := ctl.sg.GetUserAccess(askstr); nil != err {
+	if askstr := ctl.um.GetAccessKey4Request(r); len(askstr) > 0 {
+		if ack, err := ctl.um.GetUserAccess(askstr); nil == err {
 			return ack.UserID
 		}
 	}
@@ -111,15 +114,15 @@ func (ctl *FileOptsCtrl) List(w http.ResponseWriter, r *http.Request) {
 	}
 	// 如果当前或上级路径有可见以上权限, 则文件默认可见
 	canVisible := ctl.checkPermision(userID, qpath, service.FPM_Visible)
-	res := make([]service.FNode, 0)
+	res := make([]service.FNodeDto, 0)
 	if len(list) > 0 {
 		for i := 0; i < len(list); i++ {
 			if list[i].IsFile && canVisible {
-				res = append(res, list[i])
+				res = append(res, *list[i].ToDto())
 				continue
 			}
 			if ctl.checkPermision(userID, list[i].Path, service.FPM_VisibleChild) {
-				res = append(res, list[i])
+				res = append(res, *list[i].ToDto())
 			}
 		}
 	}

@@ -20,15 +20,24 @@ import (
 	"time"
 )
 
-// NewTransportToken 文件传输token控制
-func NewTransportToken(f service.FileDatas, c ipakku.AppCache) service.TransportToken {
-	return &TransportToken{f: f, c: c}
-}
-
 // TransportToken 文件传输token
 type TransportToken struct {
 	f service.FileDatas `@autowired:"FileDatas"`
 	c ipakku.AppCache   `@autowired:"AppCache"`
+}
+
+// Pakku 模块加载器接口实现, 返回模块信息&配置
+func (n *TransportToken) Pakku() ipakku.Opts {
+	return ipakku.Opts{
+		Name:        "TransportToken",
+		Version:     1.0,
+		Description: "文件传输token控制",
+		OnInit: func() {
+			if err := n.c.RegLib(service.CacheLib_StreamToken, service.CacheLib_StreamToken_Exp); nil != err {
+				logs.Panicln(err)
+			}
+		},
+	}
 }
 
 // AskWriteToken 申请写入token

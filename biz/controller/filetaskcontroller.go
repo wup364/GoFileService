@@ -18,25 +18,29 @@ import (
 	"pakku/utils/serviceutil"
 )
 
-// NewAsyncTaskCtrl NewAsyncTaskCtrl
-func NewAsyncTaskCtrl(ast service.AsyncTask) *AsyncTaskCtrl {
-	return &AsyncTaskCtrl{ast: ast}
-}
-
 // AsyncTaskCtrl 异步处理任务接口
 type AsyncTaskCtrl struct {
-	ast service.AsyncTask
+	um  service.UserAuth4Rpc `@autowired:"User4RPC"`
+	ast service.AsyncTask    `@autowired:"AsyncTask"`
 }
 
-// RouterList 实现 AsRouter 接口
-func (ctl *AsyncTaskCtrl) RouterList() ipakku.RouterConfig {
-	return ipakku.RouterConfig{
-		Group:     "v1",
-		ToToLower: true,
-		HandlerFunc: [][]interface{}{
-			{"POST", ctl.AsyncExec},
-			{"POST", ctl.AsyncExecToken},
-		}}
+// AsController 实现 AsController 接口
+func (ctl *AsyncTaskCtrl) AsController() ipakku.ControllerConfig {
+	return ipakku.ControllerConfig{
+		RequestMapping: "/filetask/v1",
+		RouterConfig: ipakku.RouterConfig{
+			ToLowerCase: true,
+			HandlerFunc: [][]interface{}{
+				{"POST", ctl.AsyncExec},
+				{"POST", ctl.AsyncExecToken},
+			},
+		},
+		FilterConfig: ipakku.FilterConfig{
+			FilterFunc: [][]interface{}{
+				{`/:[\s\S]*`, ctl.um.GetAuthFilterFunc()},
+			},
+		},
+	}
 }
 
 // AsyncExec 发起一个异步操作, 返回一个可以查询的tooken

@@ -39,6 +39,24 @@ type CopyFileTokenObject struct {
 	IsDiscontinue bool   // 是否已中断操作
 }
 
+// Clone 本地缓存拷贝接口
+func (dto *CopyFileTokenObject) Clone(val interface{}) error {
+	if tmp, ok := val.(*CopyFileTokenObject); ok {
+		tmp.ErrorString = dto.ErrorString
+		tmp.Src = dto.Src
+		tmp.Dst = dto.Dst
+		tmp.IsSrcExist = dto.IsSrcExist
+		tmp.IsDstExist = dto.IsDstExist
+		tmp.IsReplace = dto.IsReplace
+		tmp.IsReplaceAll = dto.IsReplaceAll
+		tmp.IsIgnore = dto.IsIgnore
+		tmp.IsIgnoreAll = dto.IsIgnoreAll
+		tmp.IsComplete = dto.IsComplete
+		tmp.IsDiscontinue = dto.IsDiscontinue
+	}
+	return nil
+}
+
 // ToJSON 转传JSON
 func (dto *CopyFileTokenObject) ToJSON() string {
 	if bt, err := json.Marshal(dto); nil != err {
@@ -364,7 +382,7 @@ func (task *CopyFile) getTokenObject(token string) (*CopyFileTokenObject, error)
 // GetUserID4Request 获取登录用户
 func (task *CopyFile) GetUserID4Request(r *http.Request) string {
 	if askstr := task.sg.GetAccessKey4Request(r); len(askstr) > 0 {
-		if ack, err := task.sg.GetUserAccess(askstr); nil != err {
+		if ack, err := task.sg.GetUserAccess(askstr); nil == err {
 			return ack.UserID
 		}
 	}

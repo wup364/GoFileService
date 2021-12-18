@@ -11,12 +11,14 @@
 package pakkuconf
 
 import (
+	"fileservice/biz/controller"
 	"fileservice/biz/modules/asynctask"
 	"fileservice/biz/modules/bootstart"
 	"fileservice/biz/modules/filedatas"
 	"fileservice/biz/modules/filepermission"
 	"fileservice/biz/modules/htmlpage"
 	"fileservice/biz/modules/user4rpc"
+	"fileservice/biz/serviceimpl"
 	"fileservice/pakkusys"
 	"pakku/ipakku"
 )
@@ -26,10 +28,23 @@ func RegisterModules() []ipakku.Template {
 	return []ipakku.Template{
 		new(user4rpc.User4RPC),
 		new(filedatas.FileDatas),
+		new(serviceimpl.TransportToken),
 		new(filepermission.FilePermission),
 		new(asynctask.AsyncTask),
 		new(htmlpage.HTMLPage),
 		new(bootstart.BootStart),
+	}
+}
+
+// RegisterController 注册需要加载的controller
+func RegisterController() []ipakku.AsController {
+	return []ipakku.AsController{
+		new(controller.UserCtrl),
+		new(controller.FileOptsCtrl),
+		new(controller.AsyncTaskCtrl),
+		new(controller.FilePermissionCtrl),
+		new(controller.TransportCtrl),
+		new(controller.Preview),
 	}
 }
 

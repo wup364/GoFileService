@@ -227,7 +227,7 @@ func (fns *FileDatas) GetDirNodeList(relativePath string) ([]service.FNode, erro
 				Mtime:  fs.GetModifyTime(childPath),
 				IsFile: isFile,
 				IsDir:  isDir,
-				Size:   fs.GetFileSize(relativePath),
+				Size:   fs.GetFileSize(childPath),
 			}
 			if isFile {
 				files = append(files, fbi)

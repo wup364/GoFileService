@@ -144,6 +144,11 @@ func (umg *User4RPC) CheckPwd(userID, pwd string) bool {
 	return umg.us.CheckPwd(userID, pwd)
 }
 
+// GetAuthFilterFunc 获取过滤器实现
+func (umg *User4RPC) GetAuthFilterFunc() ipakku.FilterFunc {
+	return umg.RestfulAPIFilter
+}
+
 // AskAccess 获取access
 func (umg *User4RPC) AskAccess(userID, pwd string) (*service.UserAccessDto, error) {
 	if !umg.CheckPwd(userID, pwd) {

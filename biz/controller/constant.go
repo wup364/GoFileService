@@ -11,6 +11,7 @@ package controller
 
 import (
 	"errors"
+	"fileservice/biz/service"
 )
 
 const (
@@ -60,3 +61,9 @@ var ErrorNewNameIsEmpty = errors.New("new name cannot be empty")
 
 // ErrorPermissionInsufficient 权限不足
 var ErrorPermissionInsufficient = errors.New("权限不足")
+
+// PreviewSameDirFiles 预览信息
+type PreviewSameDirFiles struct {
+	Path      string             `json:"path"`
+	PeerDatas []service.FNodeDto `json:"peerDatas"`
+}

@@ -18,9 +18,9 @@ import (
 
 // 排序测试
 func TestSort(t *testing.T) {
-	fsInfos := make([]service.FNode, 0)
+	fsInfos := make([]service.FNodeDto, 0)
 	for i := int64(0); i < 100; i++ {
-		fsInfos = append(fsInfos, service.FNode{
+		fsInfos = append(fsInfos, service.FNodeDto{
 			Mtime:  0,
 			Size:   0,
 			IsFile: int64(0) == (i % 4),
@@ -36,7 +36,7 @@ func TestSort(t *testing.T) {
 	printStrings(fSort.Sort(fsInfos))
 }
 
-func printStrings(fsInfos []service.FNode) {
+func printStrings(fsInfos []service.FNodeDto) {
 	old := make([]string, len(fsInfos))
 	for i, val := range fsInfos {
 		old[i] = strconv.FormatBool(val.IsFile) + " -- " + val.Path

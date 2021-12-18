@@ -17,15 +17,15 @@ import (
 
 // FileListSorter 文件排序
 type FileListSorter struct {
-	fsInfos   []service.FNode
-	SortField string
+	fsInfos   []service.FNodeDto
+	SortField string // Path, Size, Mtime
 	Asc       bool
 }
 
 // Sort 排序
-func (fsort FileListSorter) Sort(fis []service.FNode) []service.FNode {
-	folders := make([]service.FNode, 0)
-	files := make([]service.FNode, 0)
+func (fsort FileListSorter) Sort(fis []service.FNodeDto) []service.FNodeDto {
+	folders := make([]service.FNodeDto, 0)
+	files := make([]service.FNodeDto, 0)
 	for i := 0; i < len(fis); i++ {
 		if fis[i].IsFile {
 			files = append(files, fis[i])
@@ -58,7 +58,7 @@ func (fsort *FileListSorter) Len() int {
 // 实现sort.Interface接口比较元素方法
 func (fsort *FileListSorter) Less(i, j int) bool {
 	less := false
-	if fsort.SortField == "FileSize" {
+	if fsort.SortField == "Size" {
 		less = fsort.fsInfos[i].Size < fsort.fsInfos[j].Size
 	} else if fsort.SortField == "Mtime" {
 		less = fsort.fsInfos[i].Mtime < fsort.fsInfos[j].Mtime

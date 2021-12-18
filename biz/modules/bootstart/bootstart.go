@@ -13,14 +13,9 @@ package bootstart
 
 import (
 	"fileservice/biz/constants"
-	"fileservice/biz/controller"
-	"fileservice/biz/modules/user4rpc"
 	"fileservice/biz/service"
-	"fileservice/biz/serviceimpl"
-	"net/http"
 	"pakku/ipakku"
 	"pakku/utils/logs"
-	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/mattn/go-sqlite3"
@@ -28,13 +23,8 @@ import (
 
 // BootStart bootstart
 type BootStart struct {
-	s   ipakku.AppService      `@autowired:"AppService"`
-	ch  ipakku.AppCache        `@autowired:"AppCache"`
 	au  service.User4RPC       `@autowired:"User4RPC"`
 	pms service.FilePermission `@autowired:"FilePermission"`
-	ast service.AsyncTask      `@autowired:"AsyncTask"`
-	fm  service.FileDatas      `@autowired:"FileDatas"`
-	tt  service.TransportToken
 }
 
 // Pakku Template接口实现
@@ -43,41 +33,11 @@ func (b *BootStart) Pakku() ipakku.Opts {
 		Name:        "BootStart",
 		Version:     1.0,
 		Description: "BootStart",
-		OnReady: func(mctx ipakku.Loader) {
-			b.tt = serviceimpl.NewTransportToken(b.fm, b.ch)
-		},
-		OnInit: func() {
-			if err := b.ch.RegLib(service.CacheLib_StreamToken, service.CacheLib_StreamToken_Exp); nil != err {
-				logs.Panicln(err)
-			}
-			b.loadApis()
-		},
 		OnSetup: func() {
 			b.createDefaultUser()
 			b.createDefaultPms()
 		},
 	}
-}
-func (b *BootStart) loadApis() {
-	// 过滤器
-	apifilter := user4rpc.NewApiSignature(b.ch).RestfulAPIFilter
-	b.s.Filter("/file/:"+`[\s\S]*`, apifilter)
-	b.s.Filter("/filepms/:"+`[\s\S]*`, apifilter)
-	b.s.Filter("/filetask/:"+`[\s\S]*`, apifilter)
-	b.s.Filter("/filepms/:"+`[\s\S]*`, apifilter)
-	// b.s.Filter("/filestream/:"+`[\s\S]*`, apifilter)
-	b.s.Filter("/user/:"+`[\s\S]*`, func(rw http.ResponseWriter, r *http.Request) bool {
-		if strings.HasSuffix(r.URL.Path, "/checkpwd") {
-			return true
-		}
-		return apifilter(rw, r)
-	})
-	// controller
-	b.s.AsRouter("/user", controller.NewUserCtrl(b.au))
-	b.s.AsRouter("/file", controller.NewFileOptsCtrl(b.fm, b.au, b.pms))
-	b.s.AsRouter("/filetask", controller.NewAsyncTaskCtrl(b.ast))
-	b.s.AsRouter("/filepms", controller.NewFilePermissionCtrl(b.au, b.pms))
-	b.s.AsRouter("/filestream", controller.NewTransportCtrl(b.fm, b.au, b.tt, b.pms))
 }
 
 // createDefaultUser 创建默认账号

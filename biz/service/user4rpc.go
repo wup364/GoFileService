@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"pakku/ipakku"
 	"time"
 )
 
@@ -65,6 +66,8 @@ type UserManage interface {
 
 // UserAuth4Rpc access接口
 type UserAuth4Rpc interface {
+	// GetAuthFilterFunc 获取过滤器实现
+	GetAuthFilterFunc() ipakku.FilterFunc
 	// AskAccess 获取access
 	AskAccess(userID, pwd string) (*UserAccessDto, error)
 	// GetSecretKey 获取 userAccess

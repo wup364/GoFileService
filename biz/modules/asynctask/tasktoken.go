@@ -38,7 +38,7 @@ func (n *TaskToken) AskToken(val interface{}) (string, error) {
 
 // QueryToken 查出token
 func (n *TaskToken) QueryToken(token string, val interface{}) error {
-	if err := n.c.Get(service.CacheLib_AsyncTaskToken, token, &val); nil == err {
+	if err := n.c.Get(service.CacheLib_AsyncTaskToken, token, val); nil == err {
 		return nil
 	} else if err == ipakku.ErrNoCacheHit {
 		return service.ErrorOprationExpires

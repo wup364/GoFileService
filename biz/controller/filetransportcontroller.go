@@ -17,40 +17,44 @@ import (
 	"mime/multipart"
 	"net/http"
 	"pakku/ipakku"
+	"pakku/utils/logs"
 	"pakku/utils/serviceutil"
 	"pakku/utils/strutil"
 	"strconv"
 	"strings"
 )
 
-// NewTransportCtrl NewTransportCtrl
-func NewTransportCtrl(fm service.FileDatas, sg service.UserAuth4Rpc, tt service.TransportToken, pms service.FilePermissionCheck) *TransportCtrl {
-	return &TransportCtrl{
-		fm:  fm,
-		sg:  sg,
-		tt:  tt,
-		pms: pms,
-	}
-}
-
 // TransportCtrl 文件传输接口
 type TransportCtrl struct {
-	fm  service.FileDatas
-	sg  service.UserAuth4Rpc
-	tt  service.TransportToken
-	pms service.FilePermissionCheck
+	fm  service.FileDatas           `@autowired:"FileDatas"`
+	um  service.UserAuth4Rpc        `@autowired:"User4RPC"`
+	tt  service.TransportToken      `@autowired:"TransportToken"`
+	pms service.FilePermissionCheck `@autowired:"FilePermission"`
 }
 
-// RouterList 实现 AsRouter 接口
-func (ctl *TransportCtrl) RouterList() ipakku.RouterConfig {
-	return ipakku.RouterConfig{
-		Group:     "v1",
-		ToToLower: true,
-		HandlerFunc: [][]interface{}{
-			{"GET", "read/:" + `[\s\S]*`, ctl.Read},
-			{"ANY", "put/:" + `[\s\S]*`, ctl.Put},
-			{"GET", ctl.Token},
-		}}
+// AsController 实现 AsController 接口
+func (ctl *TransportCtrl) AsController() ipakku.ControllerConfig {
+	return ipakku.ControllerConfig{
+		RequestMapping: "/filestream/v1",
+		RouterConfig: ipakku.RouterConfig{
+			ToLowerCase: true,
+			HandlerFunc: [][]interface{}{
+				{"GET", "read/:" + `[\s\S]*`, ctl.Read},
+				{"ANY", "put/:" + `[\s\S]*`, ctl.Put},
+				{"GET", ctl.Token},
+			},
+		},
+		FilterConfig: ipakku.FilterConfig{
+			FilterFunc: [][]interface{}{
+				{`/:[\s\S]*`, func(rw http.ResponseWriter, r *http.Request) bool {
+					if strings.Contains(r.URL.Path, "/read/") || strings.Contains(r.URL.Path, "/put/") {
+						return true
+					}
+					return ctl.um.GetAuthFilterFunc()(rw, r)
+				}},
+			},
+		},
+	}
 }
 
 // checkPermision 检查权限
@@ -60,8 +64,8 @@ func (ctl *TransportCtrl) checkPermision(userID, path string, permission int64) 
 
 // getUserID4Request 获取登录用户
 func (ctl *TransportCtrl) getUserID4Request(r *http.Request) string {
-	if askstr := ctl.sg.GetAccessKey4Request(r); len(askstr) > 0 {
-		if ack, err := ctl.sg.GetUserAccess(askstr); nil != err {
+	if askstr := ctl.um.GetAccessKey4Request(r); len(askstr) > 0 {
+		if ack, err := ctl.um.GetUserAccess(askstr); nil == err {
 			return ack.UserID
 		}
 	}
@@ -117,10 +121,11 @@ func (ctl *TransportCtrl) Put(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//
+	filename := strutil.GetPathName(token.FilePath)
 	if mr, err := r.MultipartReader(); err == nil {
 		var pName string
 		if pName = r.Header.Get(headerFormNameFile); len(pName) == 0 {
-			pName = defaultFormNameFile
+			pName = filename
 		}
 		hasfile := false
 		for {
@@ -193,6 +198,7 @@ func (ctl *TransportCtrl) Read(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusPartialContent)
 			}
 			if _, err := io.Copy(w, io.LimitReader(fr, ctLength)); nil != err && err != io.EOF {
+				logs.Errorln(err)
 				serviceutil.SendServerError(w, err.Error())
 			}
 		}

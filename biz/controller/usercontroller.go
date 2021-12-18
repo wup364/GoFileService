@@ -17,35 +17,42 @@ import (
 	"net/http"
 	"pakku/ipakku"
 	"pakku/utils/serviceutil"
+	"strings"
 )
-
-// NewUserCtrl 用户管理api
-func NewUserCtrl(um service.User4RPC) *UserCtrl {
-	return &UserCtrl{
-		um: um,
-	}
-}
 
 // UserCtrl 用户管理api
 type UserCtrl struct {
-	um service.User4RPC
+	um service.User4RPC `@autowired:"User4RPC"`
 }
 
-// RouterList 实现 AsRouter 接口
-func (ctl *UserCtrl) RouterList() ipakku.RouterConfig {
-	return ipakku.RouterConfig{
-		Group:     "v1",
-		ToToLower: true,
-		HandlerFunc: [][]interface{}{
-			{"GET", ctl.ListAllUsers},
-			{"GET", ctl.QueryUser},
-			{"POST", ctl.AddUser},
-			{"DELETE", ctl.DelUser},
-			{"POST", ctl.UpdateUserName},
-			{"POST", ctl.UpdateUserPwd},
-			{"POST", ctl.CheckPwd},
-			{"POST", ctl.Logout},
-		}}
+// AsController 实现 AsController 接口
+func (ctl *UserCtrl) AsController() ipakku.ControllerConfig {
+	return ipakku.ControllerConfig{
+		RequestMapping: "/user/v1",
+		RouterConfig: ipakku.RouterConfig{
+			ToLowerCase: true,
+			HandlerFunc: [][]interface{}{
+				{"GET", ctl.ListAllUsers},
+				{"GET", ctl.QueryUser},
+				{"POST", ctl.AddUser},
+				{"DELETE", ctl.DelUser},
+				{"POST", ctl.UpdateUserName},
+				{"POST", ctl.UpdateUserPwd},
+				{"POST", ctl.CheckPwd},
+				{"POST", ctl.Logout},
+			},
+		},
+		FilterConfig: ipakku.FilterConfig{
+			FilterFunc: [][]interface{}{
+				{`/:[\s\S]*`, func(rw http.ResponseWriter, r *http.Request) bool {
+					if strings.HasSuffix(r.URL.Path, "/checkpwd") {
+						return true
+					}
+					return ctl.um.GetAuthFilterFunc()(rw, r)
+				}},
+			},
+		},
+	}
 }
 
 // checkPermission 检查是否是管理员

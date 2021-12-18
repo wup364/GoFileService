@@ -39,6 +39,23 @@ type MoveFileTokenObject struct {
 	IsDiscontinue bool   // 是否已中断操作
 }
 
+func (dto *MoveFileTokenObject) Clone(val interface{}) error {
+	if tmp, ok := val.(*MoveFileTokenObject); ok {
+		tmp.ErrorString = dto.ErrorString
+		tmp.Src = dto.Src
+		tmp.Dst = dto.Dst
+		tmp.IsSrcExist = dto.IsSrcExist
+		tmp.IsDstExist = dto.IsDstExist
+		tmp.IsReplace = dto.IsReplace
+		tmp.IsReplaceAll = dto.IsReplaceAll
+		tmp.IsIgnore = dto.IsIgnore
+		tmp.IsIgnoreAll = dto.IsIgnoreAll
+		tmp.IsComplete = dto.IsComplete
+		tmp.IsDiscontinue = dto.IsDiscontinue
+	}
+	return nil
+}
+
 // ToJSON 转传JSON
 func (dto *MoveFileTokenObject) ToJSON() string {
 	if bt, err := json.Marshal(dto); nil != err {
@@ -292,6 +309,15 @@ func (task *MoveFile) doMove(src, dst string, replace, ignore bool, walk func(s_
 					}
 				}
 			}
+		} else {
+			if err := doWalk(src, dst, task.fm.DoMove(src, dst, replace)); nil != err {
+				return err
+			}
+		}
+		if len(task.fm.GetDirList(src)) == 0 {
+			if err := task.fm.DoDelete(src); nil != err {
+				logs.Errorln(err)
+			}
 		}
 
 	} else {
@@ -362,7 +388,7 @@ func (task *MoveFile) getTokenObject(token string) (*MoveFileTokenObject, error)
 // GetUserID4Request 获取登录用户
 func (task *MoveFile) GetUserID4Request(r *http.Request) string {
 	if askstr := task.sg.GetAccessKey4Request(r); len(askstr) > 0 {
-		if ack, err := task.sg.GetUserAccess(askstr); nil != err {
+		if ack, err := task.sg.GetUserAccess(askstr); nil == err {
 			return ack.UserID
 		}
 	}

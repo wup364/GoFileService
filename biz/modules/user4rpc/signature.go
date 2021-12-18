@@ -121,7 +121,7 @@ func (st *Signature) GetAccessKey4Request(r *http.Request) string {
 		}
 	}
 	if len(accessKey) == 0 {
-		if ack, err := r.Cookie("ack"); nil == err {
+		if ack, err := r.Cookie(service.AuthHeader_AccessKey); nil == err {
 			if accessKey = ack.Value; len(accessKey) > 0 {
 				r.Header.Set(service.AuthHeader_AccessKey, accessKey)
 			}
