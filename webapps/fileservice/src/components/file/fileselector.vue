@@ -28,6 +28,8 @@
 
  
 <script>
+import { $utils } from "../../js/utils";
+import { $fileopts } from "../../js/apis/fileopts";
 export default {
   name: "fileselector",
   props: [
@@ -90,7 +92,7 @@ export default {
         },
         {
           title: "文件名称",
-          key: "Path",
+          key: "path",
           render: function (h, params) {
             return h("fs-fileicon", {
               props: {
@@ -144,8 +146,8 @@ export default {
       }
     },
     doOpenDir: function (node) {
-      if (!node.IsFile) {
-        this.goToPath(node.Path);
+      if (!node.isFile) {
+        this.goToPath(node.path);
       }
     },
     onOk: function () {
@@ -163,8 +165,8 @@ export default {
           : this.isSelectDir
           ? [
               {
-                Path: this.fsStatus.loadedPath,
-                IsFile: false,
+                path: this.fsStatus.loadedPath,
+                isFile: false,
               },
             ]
           : []
@@ -187,7 +189,7 @@ export default {
         this.selectedDates = [row];
       } else {
         for (let i = 0; i < this.selectedDates.length; i++) {
-          if (this.selectedDates[i].Path == row.Path) {
+          if (this.selectedDates[i].path == row.path) {
             return;
           }
         }
@@ -196,7 +198,7 @@ export default {
     },
     removeSelect: function (row) {
       for (let i = this.selectedDates.length - 1; i >= 0; i--) {
-        if (this.selectedDates[i].Path == row.Path) {
+        if (this.selectedDates[i].path == row.path) {
           this.selectedDates.remove(i);
         }
       }
@@ -216,7 +218,7 @@ export default {
         return;
       }
       let _ = this;
-      $fsApi
+      $fileopts
         .List(n)
         .then(function (data) {
           data = JSON.parse(data);
@@ -224,8 +226,8 @@ export default {
           _.selectedDates = [];
           for (let i = 0; i < data.length; i++) {
             if (
-              (_.isSelectFile && data[i].IsFile) ||
-              (_.isSelectDir && !data[i].IsFile)
+              (_.isSelectFile && data[i].isFile) ||
+              (_.isSelectDir && !data[i].isFile)
             ) {
               data[i]["_checked"] = false;
               _.fsData.push(data[i]);

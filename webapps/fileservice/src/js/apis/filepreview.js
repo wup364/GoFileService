@@ -8,68 +8,57 @@
 // IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 "use strict";
-;(function (root, factory) {
-	if (typeof exports === "object") {
-		module.exports = exports = factory();
-	}else {
-		// Global (browser)
-		root.$preview = factory();
-	}
-}(this, function ( ){
-	var api = {
-		supported: {
-			audio: ['mp3','flac'],
-			video: ['mp4','mov'],
-			picture: ['png', 'gif', 'jpg', 'bmp', 'jpeg', 'icon'],
-		},
-		// 获取一个预览的Token
-		askToken: function( path ){
-			return $apitools.apiGet("/preview/asktoken", {
-				"path": path?path:""
-			});
-		},
-		// Status
-		status: function( path ){
-			return $apitools.apiGet("/preview/status", { });
-		},
-		// 获取token内的信息 token, type=[list||steam], path
-		// 读取信息: token & type=list 
-		// 获取流: token & type=stream || path 
-		tokenDatas: function( token, type, path ){
-			return $apitools.apiGet("/preview/tokendatas", {
-				"token": token?token:"",
-				"type": type?type:"",
-				"path": path?path:""
-			});
-		},
-		// 预览
-		doPreview: function(path, suffix){
-			return new Promise(function(resolve, reject){
-				api.askToken( path ).then(function( data ){
-					api.openPreview(data, suffix?suffix.toLowerCase():path.getSuffixed(false).toLowerCase());
-					resolve();
-				}).catch(reject);
-			});
-		},
-		// 打开预览地址
-		openPreview: function(token, suffix){
-			let type = '';
-			if(api.isSupport('audio', suffix)){
-				type = 'audio';
-			}else if(api.isSupport('video', suffix)){
-				type = 'video';
-			}else if(api.isSupport('picture', suffix)){
-				type = 'picture';
-			}else{
-				throw "不支持预览该文件";
-			}
-			window.open("/pages/preview?token="+token+"&type="+type);
-		},
-		// 是否是支持的播放类型
-		isSupport: function(type, suffix){
-			suffix = suffix.toLowerCase();
-			return type && suffix && api.supported[type] && api.supported[type].indexOf(suffix) > -1;
+import { $apitools } from "./apitools";
+export const $filepreview = {
+	supported: {
+		audio: ['mp3', 'flac'],
+		video: ['mp4', 'mov'],
+		picture: ['png', 'gif', 'jpg', 'bmp', 'jpeg', 'icon'],
+	},
+	// 获取一个预览的Token
+	askToken: function (path) {
+		return $apitools.apiGet("/filepreview/v1/asktoken", {
+			"path": path ? path : ""
+		});
+	},
+	// Status
+	status: function (token) {
+		return $apitools.apiGet("/filepreview/v1/status/" + token);
+	},
+	// 获取预览文件的同级目录文件
+	samedirFiles: function (token) {
+		return $apitools.apiGet("/filepreview/v1/samedirfiles/" + token);
+	},
+	// 获取预览文件的文件流
+	buildStreamURL: function (token, fileName) {
+		return $apitools.buildAPIURL("/filepreview/v1/stream/" + token + "?fileName=" + (fileName ? fileName : ""));
+	},
+	// 预览
+	doPreview: function (path, suffix) {
+		return new Promise(function (resolve, reject) {
+			$filepreview.askToken(path).then(function (data) {
+				$filepreview.openPreview(data, suffix ? suffix.toLowerCase() : path.getSuffixed(false).toLowerCase());
+				resolve();
+			}).catch(reject);
+		});
+	},
+	// 打开预览地址
+	openPreview: function (token, suffix) {
+		let type = '';
+		if ($filepreview.isSupport('audio', suffix)) {
+			type = 'audio';
+		} else if ($filepreview.isSupport('video', suffix)) {
+			type = 'video';
+		} else if ($filepreview.isSupport('picture', suffix)) {
+			type = 'picture';
+		} else {
+			throw "不支持预览该文件";
 		}
-	};
-	return api;
-}));
+		window.open("/pages/preview?token=" + token + "&type=" + type);
+	},
+	// 是否是支持的播放类型
+	isSupport: function (type, suffix) {
+		suffix = suffix.toLowerCase();
+		return type && suffix && $filepreview.supported[type] && $filepreview.supported[type].indexOf(suffix) > -1;
+	}
+};

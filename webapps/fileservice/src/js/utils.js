@@ -302,7 +302,6 @@ export const $utils = {
 		}
 		// 构建请求负载
 		let payload, payload_encode = "";
-		console.log(Object.keys(paramsmap))
 		let keys = Object.keys(paramsmap);
 		if (keys.length > 0) {
 			keys = keys.sort();

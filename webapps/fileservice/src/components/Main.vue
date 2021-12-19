@@ -1,51 +1,49 @@
 <template>
   <div class="page" ref="main-page">
-    <div class="layout">
+    <Layout>
+      <Sider width="110">
+        <div style="padding: 8px; text-align: center">
+          <Dropdown @on-click="onDropdownClick" transfer>
+            <div>
+              <Icon
+                type="md-flower"
+                class="cs_p"
+                :style="{ 'font-size': '48px', color: '#c9ccd0' }"
+              ></Icon>
+              <a
+                href="javascript:void(0)"
+                class="d_block mg_b_5"
+                style="color: rgb(201, 204, 208); line-height: 20px"
+                >{{ currentAccount.userName }}</a
+              >
+            </div>
+            <Dropdown-Menu slot="list">
+              <Dropdown-Item name="logout">注销登录</Dropdown-Item>
+            </Dropdown-Menu>
+          </Dropdown>
+        </div>
+        <Menu
+          :active-name="currentMenu"
+          @on-select="(n) => (currentMenu = n)"
+          theme="dark"
+          width="auto"
+        >
+          <Menu-Item name="FileList">
+            <Icon type="ios-navigate"></Icon> <span>文件</span>
+          </Menu-Item>
+          <Menu-Item name="SysSetting">
+            <Icon type="ios-settings"></Icon> <span>设置</span>
+          </Menu-Item>
+        </Menu>
+      </Sider>
       <Layout>
-        <Sider width="110">
-          <div style="padding: 8px; text-align: center">
-            <Dropdown @on-click="onDropdownClick" transfer>
-              <div>
-                <Icon
-                  type="md-flower"
-                  class="cs_p"
-                  :style="{ 'font-size': '48px', color: '#c9ccd0' }"
-                ></Icon>
-                <a
-                  href="javascript:void(0)"
-                  class="d_block mg_b_5"
-                  style="color: rgb(201, 204, 208); line-height: 20px"
-                  >{{ currentAccount.userName }}</a
-                >
-              </div>
-              <Dropdown-Menu slot="list">
-                <Dropdown-Item name="logout">注销登录</Dropdown-Item>
-              </Dropdown-Menu>
-            </Dropdown>
-          </div>
-          <Menu
-            :active-name="currentMenu"
-            @on-select="(n) => (currentMenu = n)"
-            theme="dark"
-            width="auto"
-          >
-            <Menu-Item name="FileList">
-              <Icon type="ios-navigate"></Icon> <span>文件</span>
-            </Menu-Item>
-            <Menu-Item name="SysSetting">
-              <Icon type="ios-settings"></Icon> <span>设置</span>
-            </Menu-Item>
-          </Menu>
-        </Sider>
-        <Layout>
-          <Content
-            :style="{ background: '#fff', minHeight: '220px', height: '100%' }"
-          >
-            <Component v-bind:is="currentMenu"></Component>
-          </Content>
-        </Layout>
+        <Content
+          :style="{ background: '#fff', minHeight: '220px', height: '100%' }"
+        >
+          <Component v-bind:is="currentMenu"></Component>
+        </Content>
       </Layout>
-    </div>
+    </Layout>
   </div>
 </template>
 
@@ -77,7 +75,7 @@ export default {
           .logout()
           .then((data) => {
             $apitools.destroySession();
-            window.location.replace("/");
+            this.$router.push("/");
           })
           .catch((err) => {
             this.$Message.error(err.toString());

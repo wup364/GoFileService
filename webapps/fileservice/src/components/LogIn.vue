@@ -15,18 +15,18 @@
             <span style="font-size: 20px; color: #666">登录系统</span>
           </FormItem>
           <FormItem>
-            <Input type="text" v-model="loginform.user" placeholder="用户">
+            <i-input type="text" v-model="loginform.user" placeholder="用户">
               <Icon type="ios-person-outline" slot="prepend"></Icon>
-            </Input>
+            </i-input>
           </FormItem>
           <FormItem prop="password">
-            <Input
+            <i-input
               type="password"
               v-model="loginform.password"
               placeholder="密码"
             >
               <Icon type="ios-lock-outline" slot="prepend"></Icon>
-            </Input>
+            </i-input>
           </FormItem>
           <FormItem>
             <Button

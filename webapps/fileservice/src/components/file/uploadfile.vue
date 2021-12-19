@@ -73,6 +73,8 @@
 
  
 <script>
+import { $utils } from "../../js/utils";
+import { $fileopts } from "../../js/apis/fileopts";
 export default {
   name: "uploadfile",
   props: ["show-drawer", "parent", "drag-ref"],
@@ -166,7 +168,7 @@ export default {
         };
         // 预备开始
         file._upload.started = true;
-        $fsApi
+        $fileopts
           .GetUploadUrl(file._upload.base + "/" + file.name)
           .then(function (url) {
             file._upload.updater = $utils.uploadByFormData(url, file, opts);

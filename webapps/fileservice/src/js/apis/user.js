@@ -14,7 +14,7 @@ export const $userApi = { sync: {} };
 
 /**
  * 登录
- * return {UserID, AccessKey, SecretKey}
+ * return {userID, accessKey, secretKey}
  */
 $userApi.login = function (user, pwd) {
 	return new Promise(function (resolve, reject) {

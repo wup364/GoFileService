@@ -7,6 +7,8 @@
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 // IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 import { $utils } from "../utils";
+import _ from "../prototypes"
+import sha256 from 'crypto-js/sha256';
 
 // API请求包装
 "use strict";
@@ -63,9 +65,9 @@ export const $apitools = {
 			}
 		}
 		if (payloads.length > 0) {
-			return url + '?' + payloads_encode.join("&") + '&x-Ack=' + session.accessKey + "&X-Sign=" + md5(payloads.join("&") + session.secretKey)
+			return url + '?' + payloads_encode.join("&") + '&x-Ack=' + session.accessKey + "&X-Sign=" + sha256(payloads.join("&") + session.secretKey)
 		} else {
-			return url + '?x-Ack=' + session.accessKey + '&X-Sign=' + md5(session.secretKey)
+			return url + '?x-Ack=' + session.accessKey + '&X-Sign=' + sha256(session.secretKey)
 		}
 	},
 	/**
@@ -90,7 +92,7 @@ export const $apitools = {
 			signPayload = opt.session.secretKey;
 		}
 		request.setHeader("X-Ack", session.accessKey);
-		request.setHeader("X-Sign", md5(signPayload));
+		request.setHeader("X-Sign", sha256(signPayload));
 		return request;
 	},
 	/**
@@ -147,11 +149,11 @@ export const $apitools = {
 	 * APi-Get请求
 	 */
 	apiGet: function (uri, datas) {
-		return new Promise(function (resolve, reject) {
+		return new Promise((resolve, reject) => {
 			this.apiRequest({
 				uri: uri,
 				datas: datas,
-			}).do(function (xhr, opt) {
+			}).do((xhr, opt) => {
 				if (xhr.readyState === 4) {
 					let res = this.apiResponseFormat(xhr);
 					if (res.code === 200) {
@@ -167,12 +169,12 @@ export const $apitools = {
 	 * APi-Post请求
 	 */
 	apiPost: function (uri, datas) {
-		return new Promise(function (resolve, reject) {
+		return new Promise((resolve, reject) => {
 			this.apiRequest({
 				uri: uri,
 				method: "POST",
 				datas: datas,
-			}).do(function (xhr, opt) {
+			}).do((xhr, opt) => {
 				if (xhr.readyState === 4) {
 					let res = this.apiResponseFormat(xhr);
 					if (res.code === 200) {

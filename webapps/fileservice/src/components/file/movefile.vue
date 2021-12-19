@@ -58,9 +58,28 @@
 
  
 <script>
+import { $fileopts } from "../../js/apis/fileopts";
 export default {
   name: "movefile",
-  props: ["show-dailog", "src-paths", "dest-path", "move-settings"],
+  props: {
+    showDailog: {
+      type: Boolean,
+      default: false,
+    },
+    srcPaths: {
+      type: Array,
+      default: () => {
+        return [];
+      },
+    },
+    destPath: { type: String, default: "/" },
+    moveSettings: {
+      type: Object,
+      default: () => {
+        return { ignore: false, replace: false, width: 450 };
+      },
+    },
+  },
   data: function () {
     return {
       operations: {
@@ -69,11 +88,6 @@ export default {
         ignoreall: "ignoreall",
         replace: "replace",
         replaceall: "replaceall",
-      },
-      moveSettings: {
-        ignore: false,
-        replace: false,
-        width: 450,
       },
       operationData: {
         multiCount: 0,
@@ -104,10 +118,10 @@ export default {
         let tempDst =
           this.operationData.destPath +
           "/" +
-          tempSrc.Path.getName().parsePath();
-        $fsApi
+          tempSrc.path.getName().parsePath();
+        $fileopts
           .MoveAsync(
-            tempSrc.Path,
+            tempSrc.path,
             tempDst,
             this.moveSettings.replace,
             this.moveSettings.ignore
@@ -134,7 +148,7 @@ export default {
         return;
       }
       let _ = this;
-      $fsApi
+      $fileopts
         .AsyncExecToken("MoveFile", this.operationData.token)
         .then(function (data) {
           /*
@@ -201,7 +215,7 @@ export default {
     doStop: function () {
       if (this.operationData.token && this.operationData.token.length > 0) {
         let _ = this;
-        $fsApi
+        $fileopts
           .AsyncExecToken("MoveFile", this.operationData.token, {
             operation: this.operations.stop,
           })
@@ -221,7 +235,7 @@ export default {
         return;
       }
       let _ = this;
-      $fsApi
+      $fileopts
         .AsyncExecToken("MoveFile", this.operationData.token, {
           operation: this.moveSettings.ignore
             ? this.operations.ignoreall
@@ -239,7 +253,7 @@ export default {
         return;
       }
       let _ = this;
-      $fsApi
+      $fileopts
         .AsyncExecToken("MoveFile", this.operationData.token, {
           operation: this.moveSettings.replace
             ? this.operations.replaceall

@@ -10,13 +10,13 @@
           height: 32px;
         "
       />
-      <Input
+      <i-input
         v-if="isEditor"
         v-model="filename"
         style="width: calc(100% - 50px)"
         @on-blur="doSave"
         @on-enter="doSave"
-      ></Input>
+      ></i-input>
       <span
         v-else
         style="cursor: pointer"
@@ -30,6 +30,7 @@
 
  
 <script>
+import { iconUrl } from "../../js/bizutil";
 export default {
   name: "fileicon",
   props: ["node", "isEditor"],
@@ -115,17 +116,17 @@ export default {
     doSave: function () {
       if (this.isEditor === true) {
         this.isEditor = false;
-        this.$emit("doRename", this.node.Path, this.filename);
+        this.$emit("doRename", this.node.path, this.filename);
       }
     },
     getFileIcon: function (path) {
-      if (!this.node.IsFile) {
-        return "/img/file_icons/folder.png";
+      if (!this.node.isFile) {
+        return "/static/img/file_icons/folder.png";
       }
-      return $utils.iconUrl(path);
+      return iconUrl(path);
     },
     initvalue: function () {
-      this.filename = this.node.Path.getName();
+      this.filename = this.node.path.getName();
       this.icon = this.getFileIcon(this.filename);
     },
   },

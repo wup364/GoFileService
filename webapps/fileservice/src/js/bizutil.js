@@ -15,10 +15,10 @@ export function iconUrl(path) {
 		let type = path.substring(path.lastIndexOf(".") + 1).toLowerCase();
 		for (let i = 0; i < icons.length; i++) {
 			if (icons[i] == type) {
-				return "/img/file_icons/" + type + ".png";
+				return "/static/img/file_icons/" + type + ".png";
 			}
 		}
 	}
-	return "/img/file_icons/file.png";
+	return "/static/img/file_icons/file.png";
 
 };

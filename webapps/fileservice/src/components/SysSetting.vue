@@ -13,12 +13,12 @@
             style="padding: 10px"
           >
             <Form-Item class="mg_b_10" label="用户名: " prop="UserName">
-              <Input
+              <i-input
                 v-model="currentAccount.UserName"
                 @on-enter="currentAccount.onUserNameonEnter"
                 placeholder="Enter your name"
                 style="max-width: 200px"
-              ></Input>
+              ></i-input>
             </Form-Item>
             <Form-Item class="mg_b_10" label="密码: " prop="UserPWD">
               <a @click="currentAccount.onUpdataPWD" href="javascript:void(0);"
@@ -71,7 +71,7 @@
             :loading="userManage.loading"
             :columns="userManage.columns"
             :data="calcUserManagePageDatas"
-            highlight-row="true"
+            :highlight-row="true"
             @on-row-click="userManage.onRowClick"
             @on-selection-change="userManage.onSelectionChange"
           ></Table>
@@ -127,7 +127,7 @@
             :loading="fPermissionManage.loading"
             :columns="fPermissionManage.columns"
             :data="calcFPermissionManage"
-            highlight-row="true"
+            :highlight-row="true"
             @on-row-click="fPermissionManage.onRowClick"
             @on-selection-change="fPermissionManage.onSelectionChange"
           ></Table>
@@ -160,26 +160,26 @@
           :model="userManage.userEdit"
           :label-width="80"
         >
-          <Form-Item class="mg_b_10" label="登录ID: " prop="UserID">
-            <Input
+          <Form-Item class="mg_b_10" label="登录ID: " prop="userID">
+            <i-input
               v-if="userManage.userEdit.isAdd"
-              v-model="userManage.userEdit.UserID"
+              v-model="userManage.userEdit.userID"
               placeholder="Enter your user ID"
-            ></Input>
-            <span v-else>{{ userManage.userEdit.UserID }}</span>
+            ></i-input>
+            <span v-else>{{ userManage.userEdit.userID }}</span>
           </Form-Item>
           <Form-Item class="mg_b_10" label="用户名: " prop="UserName">
-            <Input
+            <i-input
               v-model="userManage.userEdit.UserName"
               placeholder="Enter your name"
-            ></Input>
+            ></i-input>
           </Form-Item>
           <Form-Item class="mg_b_10" label="密码: " prop="UserPWD">
-            <Input
+            <i-input
               v-model="userManage.userEdit.UserPWD"
               placeholder="Enter your password"
               type="password"
-            ></Input>
+            ></i-input>
           </Form-Item>
           <Form-Item class="mg_b_10" label="用户类型: " prop="usertype">
             <!-- {{userManage.userEdit.UserTypeDesc}} -->
@@ -212,25 +212,25 @@
           :model="fPermissionManage.fPermissionEdit"
           :label-width="80"
         >
-          <Form-Item class="mg_b_10" label="用户ID: " prop="UserID">
+          <Form-Item class="mg_b_10" label="用户ID: " prop="userID">
             <Select
               v-if="fPermissionManage.fPermissionEdit.isAdd"
-              v-model="fPermissionManage.fPermissionEdit.UserID"
+              v-model="fPermissionManage.fPermissionEdit.userID"
               transfer
             >
               <Option
                 v-for="item in fPermissionManage.userselector.datas"
-                :value="item.UserID"
-                :key="item.UserID"
+                :value="item.userID"
+                :key="item.userID"
                 >{{ item.UserName }}</Option
               >
             </Select>
-            <span v-else>{{ fPermissionManage.fPermissionEdit.UserID }}</span>
+            <span v-else>{{ fPermissionManage.fPermissionEdit.userID }}</span>
           </Form-Item>
-          <Form-Item class="mg_b_10" label="授权目录: " prop="Path">
-            <Input
+          <Form-Item class="mg_b_10" label="授权目录: " prop="path">
+            <i-input
               v-if="fPermissionManage.fPermissionEdit.isAdd"
-              v-model="fPermissionManage.fPermissionEdit.Path"
+              v-model="fPermissionManage.fPermissionEdit.path"
               placeholder="授权路径"
               readonly
             >
@@ -239,11 +239,11 @@
                 @click="onSelectDir('onBeforFpmsSelectedDir')"
                 >选择</Button
               >
-            </Input>
-            <span v-else>{{ fPermissionManage.fPermissionEdit.Path }}</span>
+            </i-input>
+            <span v-else>{{ fPermissionManage.fPermissionEdit.path }}</span>
           </Form-Item>
           <Form-Item class="mg_b_10" label="授权权限: " prop="Permission">
-            <!-- <Input v-model="fPermissionManage.fPermissionEdit.Permission" placeholder=""></Input> -->
+            <!-- <i-input v-model="fPermissionManage.fPermissionEdit.Permission" placeholder=""></i-input> -->
             <Checkbox-Group
               v-model="fPermissionManage.fPermissionEdit.Permissions"
             >
@@ -280,7 +280,8 @@
 </template>
 
 <script>
-import { $apitools } from "../js/apis/apitools";
+import { $utils } from "../js/utils";
+import { $filepms } from "../js/apis/filepermission";
 export default {
   name: "SysSetting",
   data: function () {
@@ -313,7 +314,7 @@ export default {
         userEdit: {
           show: false,
           isAdd: false,
-          UserID: "",
+          userID: "",
           UserType: "",
           UserName: "",
           UserPWD: "",
@@ -374,8 +375,8 @@ export default {
         fPermissionEdit: {
           show: false,
           isAdd: false,
-          UserID: "",
-          Path: "",
+          userID: "",
+          path: "",
           Permission: 0,
           Permissions: [],
           PermissionID: "",
@@ -392,11 +393,11 @@ export default {
           },
           {
             title: "用户ID",
-            key: "UserID",
+            key: "userID",
           },
           {
             title: "文件路径",
-            key: "Path",
+            key: "path",
           },
           {
             title: "权限类型",
@@ -405,7 +406,7 @@ export default {
               return h(
                 "span",
                 {},
-                $fpmsApi.$TYPE.sum2Name(c.row.Permission).join(", ")
+                $filepms.$TYPE.sum2Name(c.row.Permission).join(", ")
               );
             },
           },
@@ -438,7 +439,7 @@ export default {
       },
       // 账户信息
       currentAccount: {
-        UserID: "",
+        userID: "",
         UserType: "",
         UserTypeDesc: "",
         UserName: "",
@@ -453,7 +454,7 @@ export default {
             return;
           }
           $userApi
-            .updateUserName(_.currentAccount.UserID, _.currentAccount.UserName)
+            .updateUserName(_.currentAccount.userID, _.currentAccount.UserName)
             .then(function (data) {
               _.$Message.info("操作成功");
               _.$root.doInitCurrentAccountInfo();
@@ -470,7 +471,7 @@ export default {
           _.$Modal.info({
             title: "更改密码",
             render: function (h) {
-              return h("Input", {
+              return h("i-input", {
                 props: {
                   type: "password",
                   value: "",
@@ -486,7 +487,7 @@ export default {
             },
             onOk: function () {
               $userApi
-                .updateUserPwd(_.currentAccount.UserID, newpwd)
+                .updateUserPwd(_.currentAccount.userID, newpwd)
                 .then(function (data) {
                   _.$Message.info("操作成功");
                 })
@@ -568,7 +569,7 @@ export default {
     },
     onAddUser: function () {
       this.userManage.userEdit.isAdd = true;
-      this.userManage.userEdit.UserID = "";
+      this.userManage.userEdit.userID = "";
       this.userManage.userEdit.UserName = "";
       this.userManage.userEdit.UserType = "";
       this.userManage.userEdit.UserPWD = "";
@@ -579,7 +580,7 @@ export default {
       if (rows) {
         try {
           for (let i = 0; i < rows.length; i++) {
-            $userApi.sync.delUser(rows[i].UserID);
+            $userApi.sync.delUser(rows[i].userID);
           }
           this.$Message.info("操作成功");
         } catch (err) {
@@ -593,14 +594,14 @@ export default {
       if (rows && rows.length == 1) {
         this.userManage.userEdit.isAdd = false;
         this.userManage.userEdit.UserPWD = "";
-        this.userManage.userEdit.UserID = rows[0].UserID;
+        this.userManage.userEdit.userID = rows[0].userID;
         this.userManage.userEdit.UserName = rows[0].UserName;
         this.userManage.userEdit.UserType = rows[0].UserType;
         this.userManage.userEdit.show = true;
       }
     },
     onSaveUser: function () {
-      if (!this.userManage.userEdit.UserID) {
+      if (!this.userManage.userEdit.userID) {
         this.$Message.error("用户ID不能为空");
         return;
       }
@@ -612,7 +613,7 @@ export default {
         let _ = this;
         $userApi
           .addUser(
-            this.userManage.userEdit.UserID,
+            this.userManage.userEdit.userID,
             this.userManage.userEdit.UserName,
             this.userManage.userEdit.UserPWD
           )
@@ -628,11 +629,11 @@ export default {
       } else {
         try {
           $userApi.sync.updateUserName(
-            this.userManage.userEdit.UserID,
+            this.userManage.userEdit.userID,
             this.userManage.userEdit.UserName
           );
           $userApi.sync.updateUserPwd(
-            this.userManage.userEdit.UserID,
+            this.userManage.userEdit.userID,
             this.userManage.userEdit.UserPWD
           );
           this.userManage.userEdit.show = false;
@@ -649,7 +650,7 @@ export default {
       _.fPermissionManage.datas = [];
       _.fPermissionManage.loading = true;
       _.fPermissionManage.currentPageIndex = 1;
-      $fpmsApi
+      $filepms
         .listFPermissions()
         .then(function (datas) {
           if (datas) {
@@ -677,8 +678,8 @@ export default {
         .catch(console.error);
 
       this.fPermissionManage.fPermissionEdit.isAdd = true;
-      this.fPermissionManage.fPermissionEdit.UserID = "";
-      this.fPermissionManage.fPermissionEdit.Path = "";
+      this.fPermissionManage.fPermissionEdit.userID = "";
+      this.fPermissionManage.fPermissionEdit.path = "";
       this.fPermissionManage.fPermissionEdit.Permission = 0;
       this.fPermissionManage.fPermissionEdit.Permissions = [];
       this.fPermissionManage.fPermissionEdit.PermissionID = "";
@@ -687,7 +688,7 @@ export default {
     //
     onBeforFpmsSelectedDir: function (rows) {
       if (rows && rows.length > 0) {
-        this.fPermissionManage.fPermissionEdit.Path = rows[0].Path;
+        this.fPermissionManage.fPermissionEdit.path = rows[0].path;
       }
     },
     // 修改权限
@@ -695,8 +696,8 @@ export default {
       let rows = this.$refs.fPermissionManage.getSelection();
       if (rows && rows.length == 1) {
         this.fPermissionManage.fPermissionEdit.isAdd = false;
-        this.fPermissionManage.fPermissionEdit.UserID = rows[0].UserID;
-        this.fPermissionManage.fPermissionEdit.Path = rows[0].Path;
+        this.fPermissionManage.fPermissionEdit.userID = rows[0].userID;
+        this.fPermissionManage.fPermissionEdit.path = rows[0].path;
         this.fPermissionManage.fPermissionEdit.Permission = parseInt(
           rows[0].Permission
         );
@@ -723,7 +724,7 @@ export default {
       if (rows) {
         try {
           for (let i = 0; i < rows.length; i++) {
-            $fpmsApi.sync.delFPermission(rows[i].PermissionID);
+            $filepms.sync.delFPermission(rows[i].PermissionID);
           }
           this.$Message.info("操作成功");
         } catch (err) {
@@ -734,11 +735,11 @@ export default {
     },
     // 保存
     onSaveFPermission: function () {
-      if (!this.fPermissionManage.fPermissionEdit.UserID) {
+      if (!this.fPermissionManage.fPermissionEdit.userID) {
         this.$Message.error("用户ID不能为空");
         return;
       }
-      if (!this.fPermissionManage.fPermissionEdit.Path) {
+      if (!this.fPermissionManage.fPermissionEdit.path) {
         this.$Message.error("授权路径名不能为空");
         return;
       }
@@ -757,10 +758,10 @@ export default {
         return res;
       })();
       if (this.fPermissionManage.fPermissionEdit.isAdd) {
-        $fpmsApi
+        $filepms
           .addFPermission(
-            this.fPermissionManage.fPermissionEdit.UserID,
-            this.fPermissionManage.fPermissionEdit.Path,
+            this.fPermissionManage.fPermissionEdit.userID,
+            this.fPermissionManage.fPermissionEdit.path,
             this.fPermissionManage.fPermissionEdit.Permission
           )
           .then(function (data) {
@@ -773,7 +774,7 @@ export default {
             _.doListFPermissions();
           });
       } else {
-        $fpmsApi
+        $filepms
           .updateFPermission(
             this.fPermissionManage.fPermissionEdit.PermissionID,
             this.fPermissionManage.fPermissionEdit.Permission

@@ -75,12 +75,12 @@
           @click="goToPath"
           style="float: left; max-width: calc(100% - 250px)"
         ></fileAddress>
-        <Input
+        <i-input
           v-model="searchText"
           placeholder="Enter file name"
           @on-enter="loadDatePage(1)"
           style="float: right; max-width: 240px; padding: 4px 0px"
-        ></Input>
+        ></i-input>
       </div>
       <Table
         ref="fsSelection"
@@ -88,7 +88,7 @@
         :loading="loading"
         :columns="fsColumns"
         :data="fsData"
-        highlight-row="true"
+        :highlight-row="true"
         @on-row-click="onRowClick"
         @on-selection-change="onSelectionChange"
       ></Table>
@@ -164,7 +164,10 @@ import movefile from "./file/movefile.vue";
 import fileSelector from "./file/fileselector.vue";
 import fileicon from "./file/fileicon.vue";
 
+import { $utils } from "../js/utils";
 import { $apitools } from "../js/apis/apitools";
+import { $fileopts } from "../js/apis/fileopts";
+import { $filepms } from "../js/apis/filepermission";
 export default {
   name: "FileList",
   components: {
@@ -222,9 +225,9 @@ export default {
         },
         {
           title: "文件名称",
-          key: "Path",
+          key: "path",
           render: function (h, params) {
-            return h("fs-fileicon", {
+            return h(fileicon, {
               props: {
                 node: params.row,
                 isEditor: params.row.showRename ? true : false,
@@ -240,19 +243,19 @@ export default {
         },
         {
           title: "修改时间",
-          key: "CtTime",
+          key: "mtime",
           maxWidth: 160,
           render: function (h, params) {
-            return h("span", $utils.long2Time(params.row.CtTime));
+            return h("span", $utils.long2Time(params.row.mtime));
           },
         },
         {
           title: "文件大小",
-          key: "FileSize",
+          key: "size",
           maxWidth: 160,
           render: function (h, params) {
-            if (params.row.IsFile) {
-              return h("span", $utils.formatSize(params.row.FileSize));
+            if (params.row.isFile) {
+              return h("span", $utils.formatSize(params.row.size));
             } else {
               h("span", "");
             }
@@ -360,7 +363,7 @@ export default {
       this.onSelectionChange([], {});
       this.fsData_All = [];
       this.fsData = [];
-      $fsApi
+      $fileopts
         .List(path)
         .then(function (data) {
           _.fsData_All = JSON.parse(data);
@@ -369,6 +372,7 @@ export default {
           // _.loading = false;
         })
         .catch(function (err) {
+          console.error(err);
           _.loading = false;
           _.$Message.error(err.toString());
         });
@@ -379,7 +383,7 @@ export default {
         let stemp = this.searchText.toLowerCase();
         for (let i = 0; i < this.fsData_All.length; i++) {
           if (
-            this.fsData_All[i].Path.getName().toLowerCase().indexOf(stemp) > -1
+            this.fsData_All[i].path.getName().toLowerCase().indexOf(stemp) > -1
           ) {
             dataAll.push(this.fsData_All[i]);
           }
@@ -402,19 +406,19 @@ export default {
       this.permissionsMap = {};
       let paths = [this.fsAddress.loadPath];
       datas.forEach(function (row) {
-        paths.push(row.Path);
+        paths.push(row.path);
       });
       let _ = this;
-      $fpmsApi
-        .GetUserPermissionSum($apitools.getSession().UserID, paths)
+      $filepms
+        .GetUserPermissionSum($apitools.getSession().userID, paths)
         .then(function (pms) {
           _.permissionsMap = pms ? JSON.parse(pms) : {};
           for (let i = 0; i < datas.length; i++) {
             datas[i].Permission =
-              undefined != _.permissionsMap[datas[i].Path]
-                ? _.permissionsMap[datas[i].Path]
+              undefined != _.permissionsMap[datas[i].path]
+                ? _.permissionsMap[datas[i].path]
                 : -1;
-            datas[i].PermissionText = $fpmsApi.$TYPE
+            datas[i].PermissionText = $filepms.$TYPE
               .sum2Name(datas[i].Permission)
               .join(", ");
           }
@@ -431,12 +435,12 @@ export default {
     doRename: function (index, row, name) {
       row.showRename = false;
       this.$set(this.fsData, index, row);
-      if (!name || row.Path.getName() == name) {
+      if (!name || row.path.getName() == name) {
         return;
       }
       let _ = this;
-      $fsApi
-        .Rename(row.Path, name)
+      $fileopts
+        .Rename(row.path, name)
         .then(function () {
           _.$Message.info("操作成功");
           _.doRefresh();
@@ -453,7 +457,7 @@ export default {
         return;
       }
       let _ = this;
-      $fsApi
+      $fileopts
         .NewFolder(this.fsAddress.loadPath + "/" + name)
         .then(function () {
           _.$Message.info("操作成功");
@@ -501,15 +505,15 @@ export default {
           }
           return;
         }
-        $fsApi
-          .Delete(select[i].Path)
+        $fileopts
+          .Delete(select[i].path)
           .then(function () {
             setTimeout(function () {
               loop(++i);
             });
           })
           .catch(function (err) {
-            errs.push(select[i].Path + "删除失败: " + err);
+            errs.push(select[i].path + "删除失败: " + err);
             loop(++i);
           });
       }
@@ -547,11 +551,11 @@ export default {
       }
       let _ = this;
       for (let i = select.length - 1; i >= 0; i--) {
-        if (!select[i].IsFile) {
+        if (!select[i].isFile) {
           continue;
         }
-        $fsApi
-          .GetDownloadUrl(select[i].Path)
+        $fileopts
+          .GetDownloadUrl(select[i].path)
           .then(function (data) {
             _.$nextTick(function () {
               let download = document.createElement("iframe");
@@ -561,7 +565,7 @@ export default {
           })
           .catch(function (err) {
             _.$Message.error(
-              "操作失败: " + select[i].Path + ", " + err.toString()
+              "操作失败: " + select[i].path + ", " + err.toString()
             );
           });
       }
@@ -574,20 +578,20 @@ export default {
       }
       select[0].showRename = true;
       for (let i = 0; i < this.fsData.length; i++) {
-        if (this.fsData[i].Path == select[0].Path) {
+        if (this.fsData[i].path == select[0].path) {
           this.$set(this.fsData, i, select[0]);
         }
       }
     },
     /* 打开文件 */
     doOpen: function (node) {
-      if (!node.IsFile) {
-        this.goToPath(node.Path);
+      if (!node.isFile) {
+        this.goToPath(node.path);
       } else {
         let _ = this;
-        $preview.doPreview(node.Path).catch(function (err) {
-          $fsApi
-            .GetSteamUrl(node.Path)
+        $preview.doPreview(node.path).catch(function (err) {
+          $fileopts
+            .GetSteamUrl(node.path)
             .then(function (data) {
               _.$nextTick(function () {
                 window.open(data);
@@ -595,7 +599,7 @@ export default {
             })
             .catch(function (err) {
               _.$Message.error(
-                "操作失败: " + node.Path + ", " + err.toString()
+                "操作失败: " + node.path + ", " + err.toString()
               );
             });
         });
@@ -613,8 +617,8 @@ export default {
     onNewFolder: function () {
       let temp = this.fsData;
       temp.unshift({
-        Path: "",
-        IsFile: false,
+        path: "",
+        isFile: false,
         IsNewFolder: true,
         showRename: true,
       });
@@ -623,11 +627,11 @@ export default {
     /* 选择单个文件夹 - OK */
     onSelectedFile: function (rows) {
       this.fsSelector.showDailog = false;
-      if (rows && rows[0] && rows[0].Path && rows[0].Path.length > 0) {
+      if (rows && rows[0] && rows[0].path && rows[0].path.length > 0) {
         if (this.fsSelector.operationObj) {
-          // this.fsCopyFile.destPath = rows[0].Path;
+          // this.fsCopyFile.destPath = rows[0].path;
           // this.fsCopyFile.showDailog = true;
-          this.fsSelector.operationObj.destPath = rows[0].Path;
+          this.fsSelector.operationObj.destPath = rows[0].path;
           this.fsSelector.operationObj.showDailog = true;
         }
       }
@@ -674,9 +678,9 @@ export default {
       // 计算上级文件夹权限
       if (
         undefined != this.permissionsMap[this.fsAddress.loadPath] &&
-        $fpmsApi.$TYPE.sumInclude(
+        $filepms.$TYPE.sumInclude(
           this.permissionsMap[this.fsAddress.loadPath],
-          $fpmsApi.$TYPE.WRITE.value
+          $filepms.$TYPE.WRITE.value
         )
       ) {
         this.fsOperationButtons.upload.show = true;
@@ -687,12 +691,12 @@ export default {
         let read = false;
         let fileCount = 0;
         for (let i = 0; i < selection.length; i++) {
-          if (selection[i].IsFile) {
+          if (selection[i].isFile) {
             fileCount++;
           }
-          read = $fpmsApi.$TYPE.sumInclude(
+          read = $filepms.$TYPE.sumInclude(
             selection[i].Permission,
-            $fpmsApi.$TYPE.READ.value
+            $filepms.$TYPE.READ.value
           );
           if (!read) {
             read = false;
@@ -706,9 +710,9 @@ export default {
         //
         let write = false;
         for (let i = 0; i < selection.length; i++) {
-          write = $fpmsApi.$TYPE.sumInclude(
+          write = $filepms.$TYPE.sumInclude(
             selection[i].Permission,
-            $fpmsApi.$TYPE.WRITE.value
+            $filepms.$TYPE.WRITE.value
           );
           if (!write) {
             write = false;
