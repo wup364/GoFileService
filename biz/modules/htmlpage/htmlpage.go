@@ -13,6 +13,7 @@ package htmlpage
 
 import (
 	"fileservice/biz/modules/user4rpc"
+	"fileservice/biz/service"
 	"pakku/ipakku"
 	"pakku/utils/logs"
 	"strings"
@@ -35,7 +36,7 @@ func (html *HTMLPage) Pakku() ipakku.Opts {
 		Version:     1.0,
 		Description: "静态资源",
 		OnReady: func(mctx ipakku.Loader) {
-			html.static = mctx.GetParam("htmlpage.static").ToString("./static")
+			html.static = mctx.GetParam("htmlpage.static").ToString("./webapp")
 		},
 		OnInit: func() {
 			html.sg = user4rpc.NewApiSignature(html.ch)
@@ -71,7 +72,7 @@ func (html *HTMLPage) staticFilter(w http.ResponseWriter, r *http.Request) bool 
 	}
 	// fmt.Println("Static Path: ", r.URL.Path)
 	if strings.HasSuffix(r.URL.Path, ".html") {
-		if ack, err := r.Cookie("ack"); nil == err && len(ack.Value) > 0 {
+		if ack, err := r.Cookie(service.AuthHeader_AccessKey); nil == err && len(ack.Value) > 0 {
 			// 是否只要 cookie 里面有合法 accessKey 就可以了
 			if _, err := html.sg.GetUserAccess(ack.Value); nil == err {
 				return true

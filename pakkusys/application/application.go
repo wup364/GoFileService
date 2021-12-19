@@ -179,12 +179,18 @@ func (boot *PakkuBoot) BootStartWeb(debug bool) {
 func (boot *PakkuBoot) BootStartRpc() {
 	// bootstart
 	boot.EnableCoreModule().EnableNetModule().BootStart()
-	//
+	// 获取appservice接口
 	var config ipakku.AppConfig
 	var service ipakku.AppService
 	boot.GetModule(&config, &service)
 	address := config.GetConfig("listen.rpc.address").ToString("127.0.0.1:8080")
 	boot.GetApplication().SetParam("listen.rpc.address", address)
+	// 注册rpcservice
+	for _, v := range pakkuconf.RegisterRPCService() {
+		if err := service.RegisteRPC(v); nil != err {
+			logs.Panicln(err)
+		}
+	}
 	service.StartRPC(ipakku.RPCServiceConfig{ListenAddr: address})
 }
 

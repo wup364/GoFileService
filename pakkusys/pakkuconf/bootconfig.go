@@ -48,6 +48,11 @@ func RegisterController() []ipakku.AsController {
 	}
 }
 
+// RegisterRPCService 注册需要加载的gorpc
+func RegisterRPCService() []interface{} {
+	return []interface{}{}
+}
+
 // RegisterModuleEvent 注册模块加载事件
 func RegisterModuleEvent() []pakkusys.ModuleEvent {
 	return []pakkusys.ModuleEvent{

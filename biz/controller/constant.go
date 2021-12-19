@@ -18,7 +18,7 @@ const (
 	// headerFormNameFile 用头信息标记Form表单中文件的FormName
 	headerFormNameFile = "FormName-File"
 	// defaultFormNameFile 默认使用这个作为Form表单中文件的FormName
-	defaultFormNameFile = "file"
+	// defaultFormNameFile = "file"
 	// defaultFormNameFspath 默认使用这个作为Form表单中文件保存位置的FormName
 	// defaultFormNameFspath = "Save-Path"
 )

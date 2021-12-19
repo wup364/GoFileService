@@ -1,0 +1,64 @@
+<template>
+  <breadcrumb separator=">">
+    <BreadcrumbItem>
+      <a href="###" @click="address_GoToRoot()">{{ showrootname }}</a>
+    </BreadcrumbItem>
+    <BreadcrumbItem
+      v-for="(item, index) in paths"
+      v-bind:key="index"
+      v-show="item && (index >= paths.length - 2 || index <= max)"
+    >
+      <a href="###" @click="address_GoToPath(item, index)">{{ item }}</a>
+    </BreadcrumbItem>
+  </breadcrumb>
+</template>
+
+ 
+<script>
+export default {
+  name: "fileaddress",
+  props: ["path", "root", "rootname", "depth"],
+  data: function () {
+    return {
+      paths: [],
+      max: 6,
+      showrootname: "",
+    };
+  },
+  created: function () {
+    this.max = this.depth
+      ? this.depth - 2 > 0
+        ? this.depth - 2
+        : 2
+      : this.max;
+    this.buildPaths();
+  },
+  methods: {
+    buildPaths: function () {
+      this.showrootname = this.rootname ? this.rootname : "/";
+      this.paths = this.path.split("/");
+    },
+    address_GoToRoot: function () {
+      this.$emit("click", this.root ? this.root : "/");
+    },
+    address_GoToPath: function (item, index) {
+      let path = "";
+      for (i = 0; i <= index; i++) {
+        if (this.paths[i]) {
+          path += "/" + this.paths[i];
+        }
+      }
+      this.$emit("click", path);
+    },
+  },
+  watch: {
+    path: function (v1, v2) {
+      this.buildPaths();
+    },
+  },
+};
+</script>
+
+<!-- Add "scoped" attribute to limit CSS to this component only -->
+<style scoped>
+</style>
