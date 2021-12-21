@@ -1,19 +1,19 @@
 <template>
   <Modal
-    v-model="showDailog"
+    v-model="isShowDailog"
     :title="selectFile ? '选择文件' : '选择目录'"
     :width="fsSettings.width"
     @on-ok="onOk"
     @on-cancel="onCancel"
   >
     <div style="height: 30px; line-height: 30px; padding-left: 5px">
-      <fs-address
+      <fileAdress
         v-if="fsStatus.loadedPath && fsStatus.loadedPath.length > 0"
         :depth="4"
         :rootname="fsSettings.rootname"
         :path="fsStatus.loadedPath"
         @click="goToPath"
-      ></fs-address>
+      ></fileAdress>
     </div>
     <Table
       :loading="fsStatus.fsLoading"
@@ -28,10 +28,13 @@
 
  
 <script>
+import fileicon from "./fileicon.vue";
+import fileAdress from "./address.vue";
 import { $utils } from "../../js/utils";
 import { $fileopts } from "../../js/apis/fileopts";
 export default {
   name: "fileselector",
+  components: { fileAdress },
   props: [
     "show-dailog",
     "settings",
@@ -40,9 +43,10 @@ export default {
     "select-file",
     "select-dir",
   ],
-  data: function () {
+  data() {
     let _ = this;
     return {
+      isShowDailog: false,
       isSelectFile: false,
       isSelectDir: false,
       isSelectMuti: false,
@@ -59,7 +63,7 @@ export default {
         {
           title: "#",
           width: 60,
-          render: function (h, params) {
+          render(h, params) {
             return h("checkbox", {
               props: {
                 value:
@@ -68,7 +72,7 @@ export default {
                     : params.row._checked,
               },
               on: {
-                "on-change": function (val) {
+                "on-change"(val) {
                   _.fsStatus.fsLoading = true;
                   if (!_.isSelectMuti) {
                     for (let i = 0; i < _.fsData.length; i++) {
@@ -93,11 +97,11 @@ export default {
         {
           title: "文件名称",
           key: "path",
-          render: function (h, params) {
-            return h("fs-fileicon", {
+          render(h, params) {
+            return h(fileicon, {
               props: {
                 node: params.row,
-                isEditor: false,
+                editMode: false,
               },
               on: {
                 click: _.doOpenDir,
@@ -109,7 +113,7 @@ export default {
           title: "修改时间",
           key: "CtTime",
           width: 180,
-          render: function (h, params) {
+          render(h, params) {
             return h("span", $utils.long2Time(params.row.CtTime));
           },
         },
@@ -118,9 +122,9 @@ export default {
       selectedDates: [],
     };
   },
-  created: function () {},
+  created() {},
   methods: {
-    init: function () {
+    init() {
       if (this.setting) {
         this.fsSettings.width = this.settings.width
           ? this.settings.width
@@ -139,18 +143,18 @@ export default {
         this.goToPath(this.startPath);
       }
     },
-    goToPath: function (path) {
+    goToPath(path) {
       if (this.fsStatus.loadedPath != path) {
         this.fsStatus.fsLoading = true;
         this.fsStatus.loadedPath = path;
       }
     },
-    doOpenDir: function (node) {
+    doOpenDir(node) {
       if (!node.isFile) {
         this.goToPath(node.path);
       }
     },
-    onOk: function () {
+    onOk() {
       this.fsStatus.fsLoading = true;
       if (this.fsData) {
         for (let i = 0; i < this.fsData.length; i++) {
@@ -172,10 +176,10 @@ export default {
           : []
       );
     },
-    onCancel: function () {
+    onCancel() {
       this.$emit("on-cancel");
     },
-    onRowClick: function (row, index) {
+    onRowClick(row, index) {
       for (let i = 0; i < this.fsData.length; i++) {
         if (this.fsData[i]._checked && index != i) {
           this.$set(this.fsData[i], "_checked", false);
@@ -184,7 +188,7 @@ export default {
       this.selectedDates = [row];
       this.$set(this.fsData[index], "_checked", true);
     },
-    putSelect: function (row) {
+    putSelect(row) {
       if (!this.isSelectMuti) {
         this.selectedDates = [row];
       } else {
@@ -196,48 +200,47 @@ export default {
         this.selectedDates.push(row);
       }
     },
-    removeSelect: function (row) {
+    removeSelect(row) {
       for (let i = this.selectedDates.length - 1; i >= 0; i--) {
         if (this.selectedDates[i].path == row.path) {
           this.selectedDates.remove(i);
         }
       }
     },
-    onSelectionChange: function (selection, row) {},
+    onSelectionChange(selection, row) {},
   },
   watch: {
-    showDailog: function (n, o) {
+    showDailog(n, o) {
       if (n) {
         this.init();
       } else {
         this.fsStatus.loadedPath = "";
       }
+      this.isShowDailog = n;
     },
-    "fsStatus.loadedPath": function (n, o) {
+    "fsStatus.loadedPath"(n, o) {
       if (!n) {
         return;
       }
-      let _ = this;
       $fileopts
         .List(n)
-        .then(function (data) {
-          data = JSON.parse(data);
-          _.fsData = [];
-          _.selectedDates = [];
+        .then((data) => {
+          this.fsData = [];
+          this.selectedDates = [];
           for (let i = 0; i < data.length; i++) {
             if (
-              (_.isSelectFile && data[i].isFile) ||
-              (_.isSelectDir && !data[i].isFile)
+              (this.isSelectFile && data[i].isFile) ||
+              (this.isSelectDir && !data[i].isFile)
             ) {
               data[i]["_checked"] = false;
-              _.fsData.push(data[i]);
+              this.fsData.push(data[i]);
             }
           }
-          _.fsStatus.fsLoading = false;
+          this.fsStatus.fsLoading = false;
         })
-        .catch(function (err) {
-          _.fsStatus.fsLoading = false;
-          _.$Message.error(err.toString());
+        .catch((err) => {
+          this.fsStatus.fsLoading = false;
+          this.$Message.error(err.toString());
         });
     },
   },

@@ -96,10 +96,10 @@ func (ctl *TransportCtrl) Token(w http.ResponseWriter, r *http.Request) {
 			token, err = ctl.tt.AskWriteToken(qdata)
 		}
 	} else {
-		err = ErrorPermissionInsufficient
+		err = ErrorNotSupport
 	}
 	if nil != token {
-		serviceutil.SendSuccess(w, token.ToDto().ToJSON())
+		serviceutil.SendSuccess(w, token.ToDto())
 	} else if nil != err {
 		serviceutil.SendBadRequest(w, err.Error())
 	}

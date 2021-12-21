@@ -16,25 +16,25 @@ export const $filepreview = {
 		picture: ['png', 'gif', 'jpg', 'bmp', 'jpeg', 'icon'],
 	},
 	// 获取一个预览的Token
-	askToken: function (path) {
+	askToken(path) {
 		return $apitools.apiGet("/filepreview/v1/asktoken", {
 			"path": path ? path : ""
 		});
 	},
 	// Status
-	status: function (token) {
+	status(token) {
 		return $apitools.apiGet("/filepreview/v1/status/" + token);
 	},
 	// 获取预览文件的同级目录文件
-	samedirFiles: function (token) {
+	samedirFiles(token) {
 		return $apitools.apiGet("/filepreview/v1/samedirfiles/" + token);
 	},
 	// 获取预览文件的文件流
-	buildStreamURL: function (token, fileName) {
+	buildStreamURL(token, fileName) {
 		return $apitools.buildAPIURL("/filepreview/v1/stream/" + token + "?fileName=" + (fileName ? fileName : ""));
 	},
 	// 预览
-	doPreview: function (path, suffix) {
+	doPreview(path, suffix) {
 		return new Promise(function (resolve, reject) {
 			$filepreview.askToken(path).then(function (data) {
 				$filepreview.openPreview(data, suffix ? suffix.toLowerCase() : path.getSuffixed(false).toLowerCase());
@@ -43,7 +43,7 @@ export const $filepreview = {
 		});
 	},
 	// 打开预览地址
-	openPreview: function (token, suffix) {
+	openPreview(token, suffix) {
 		let type = '';
 		if ($filepreview.isSupport('audio', suffix)) {
 			type = 'audio';
@@ -57,7 +57,7 @@ export const $filepreview = {
 		window.open("/pages/preview?token=" + token + "&type=" + type);
 	},
 	// 是否是支持的播放类型
-	isSupport: function (type, suffix) {
+	isSupport(type, suffix) {
 		suffix = suffix.toLowerCase();
 		return type && suffix && $filepreview.supported[type] && $filepreview.supported[type].indexOf(suffix) > -1;
 	}

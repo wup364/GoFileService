@@ -75,11 +75,7 @@ func (ctl *FilePermissionCtrl) ListFPermissions(w http.ResponseWriter, r *http.R
 		return
 	}
 	if pms, err := ctl.pms.ListFPermissions(); nil == err {
-		if tb, err := json.Marshal(pms); nil == err {
-			serviceutil.SendSuccess(w, string(tb))
-		} else {
-			serviceutil.SendServerError(w, err.Error())
-		}
+		serviceutil.SendSuccess(w, pms)
 	} else {
 		serviceutil.SendServerError(w, err.Error())
 	}
@@ -105,11 +101,7 @@ func (ctl *FilePermissionCtrl) GetUserPermissionSum(w http.ResponseWriter, r *ht
 		permissions[paths[i]] = ctl.pms.GetUserPermissionSum(userID, paths[i])
 	}
 
-	if tb, err := json.Marshal(permissions); nil == err {
-		serviceutil.SendSuccess(w, string(tb))
-	} else {
-		serviceutil.SendServerError(w, err.Error())
-	}
+	serviceutil.SendSuccess(w, permissions)
 }
 
 // ListUserFPermissions 根据用户ID查询详细信息
@@ -123,11 +115,7 @@ func (ctl *FilePermissionCtrl) ListUserFPermissions(w http.ResponseWriter, r *ht
 		return
 	}
 	if pms, err := ctl.pms.ListUserFPermissions(userID); nil == err {
-		if tb, err := json.Marshal(pms); nil == err {
-			serviceutil.SendSuccess(w, string(tb))
-		} else {
-			serviceutil.SendServerError(w, err.Error())
-		}
+		serviceutil.SendSuccess(w, pms)
 	} else {
 		serviceutil.SendServerError(w, err.Error())
 	}

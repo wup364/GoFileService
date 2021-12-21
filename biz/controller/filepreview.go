@@ -12,7 +12,6 @@
 package controller
 
 import (
-	"encoding/json"
 	"fileservice/biz/modules/filedatas"
 	"fileservice/biz/service"
 	"io"
@@ -106,17 +105,13 @@ func (ctl *Preview) SameDirFiles(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 				//
-				if json, err := json.Marshal(PreviewSameDirFiles{
+				serviceutil.SendSuccess(w, PreviewSameDirFiles{
 					Path: token.FilePath,
 					PeerDatas: filedatas.FileListSorter{
 						Asc:       true,
 						SortField: "Path",
 					}.Sort(res),
-				}); err != nil {
-					serviceutil.SendServerError(w, err.Error())
-				} else {
-					serviceutil.SendSuccess(w, string(json))
-				}
+				})
 			}
 		}
 	}

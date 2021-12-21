@@ -12,7 +12,6 @@
 package controller
 
 import (
-	"encoding/json"
 	"fileservice/biz/service"
 	"net/http"
 	"pakku/ipakku"
@@ -80,11 +79,7 @@ func (ctl *UserCtrl) ListAllUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if users, err := ctl.um.ListAllUsers(); nil == err {
-		if tb, err := json.Marshal(users); nil == err {
-			serviceutil.SendSuccess(w, string(tb))
-		} else {
-			serviceutil.SendServerError(w, err.Error())
-		}
+		serviceutil.SendSuccess(w, users)
 	} else {
 		serviceutil.SendServerError(w, err.Error())
 	}
@@ -101,7 +96,7 @@ func (ctl *UserCtrl) QueryUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if user, err := ctl.um.QueryUser(userID); nil == err {
-		serviceutil.SendSuccess(w, user.ToJSON())
+		serviceutil.SendSuccess(w, user)
 	} else {
 		serviceutil.SendServerError(w, err.Error())
 	}
@@ -224,7 +219,7 @@ func (ctl *UserCtrl) CheckPwd(w http.ResponseWriter, r *http.Request) {
 	}
 	// 检查密码是否正确, 如果正确需要返回签名信息
 	if ack, err := ctl.um.AskAccess(userID, pwd); nil == err {
-		serviceutil.SendSuccess(w, ack.ToJSON())
+		serviceutil.SendSuccess(w, ack)
 	} else {
 		serviceutil.SendServerError(w, err.Error())
 	}

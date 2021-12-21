@@ -79,7 +79,7 @@ export default {
         .login(this.loginform.user, this.loginform.password)
         .then((data) => {
           this.loading = false;
-          $apitools.saveSession(JSON.parse(data));
+          $apitools.saveSession(data);
           this.$router.push("/main");
         })
         .catch((err) => {

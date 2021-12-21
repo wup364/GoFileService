@@ -18,14 +18,14 @@
 export default {
   name: "fileaddress",
   props: ["path", "root", "rootname", "depth"],
-  data: function () {
+  data() {
     return {
       paths: [],
       max: 6,
       showrootname: "",
     };
   },
-  created: function () {
+  created() {
     this.max = this.depth
       ? this.depth - 2 > 0
         ? this.depth - 2
@@ -34,16 +34,16 @@ export default {
     this.buildPaths();
   },
   methods: {
-    buildPaths: function () {
+    buildPaths() {
       this.showrootname = this.rootname ? this.rootname : "/";
       this.paths = this.path.split("/");
     },
-    address_GoToRoot: function () {
+    address_GoToRoot() {
       this.$emit("click", this.root ? this.root : "/");
     },
-    address_GoToPath: function (item, index) {
+    address_GoToPath(item, index) {
       let path = "";
-      for (i = 0; i <= index; i++) {
+      for (let i = 0; i <= index; i++) {
         if (this.paths[i]) {
           path += "/" + this.paths[i];
         }
@@ -52,7 +52,7 @@ export default {
     },
   },
   watch: {
-    path: function (v1, v2) {
+    path(v1, v2) {
       this.buildPaths();
     },
   },

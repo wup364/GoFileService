@@ -21,7 +21,7 @@ export const $apitools = {
 	/**
 	 * 设置API主机地址
 	 */
-	setAPIHost: function (uri) {
+	setAPIHost(uri) {
 		if (uri && uri.length > 0) {
 			localStorage.setItem(this._Const.host, uri);
 			this._Const.hosturi = uri;
@@ -29,37 +29,49 @@ export const $apitools = {
 			localStorage.removeItem(this._Const.host);
 		}
 	},
-	getAPIHost: function () {
+	getAPIHost() {
 		return this._Const.hosturi ? this._Const.hosturi : '';
 	},
 	/**
 	 * 生成一个完整的url
 	 * 如: /a/b/b --> https://127.0.0.1/a/b/c
 	 */
-	buildAPIURL: function (url) {
-		return this._Const.hosturi ? this._Const.hosturi + url : window.location.origin + url;
+	buildAPIURL(url, params) {
+		let rurl = this._Const.hosturi ? this._Const.hosturi + url : window.location.origin + url;
+		if (params) {
+			let payloads = [];
+			let keys = Object.keys(params);
+			for (let i = 0; i < keys.length; i++) {
+				if (undefined !== params[keys[i]]) {
+					payloads.push(keys[i] + "=" + encodeURIComponent(params[keys[i]]));
+				}
+			}
+			rurl = rurl + "?" + payloads.join("&");
+		}
+		return rurl;
 	},
 	// 构建签名url
-	getSignAPIURL: function (url, params) {
+	getSignAPIURL(url, params) {
 		if (!params) { params = {}; }
 		let session = this.getSession();
 		if (!session || !session.secretKey || !session.accessKey) {
 			this.apiResponseStautsHandler({ code: 401 }); return;
 		}
 		// 去除无效字段
-		let paramsmap = new Map();
+		let paramsmap = {};
 		for (let key in params) {
 			if (params[key] == undefined || params[key] == null || params[key].length == 0) {
 				continue;
 			}
-			paramsmap.set(key, params[key]);
+			paramsmap[key] = params[key];
 		}
 		// 构建请求负载
 		let payloads = []; let payloads_encode = [];
-		if (paramsmap.size > 0) {
-			let keys = paramsmap.keys().sort();
+		let keys = Object.keys(paramsmap);
+		if (keys.length > 0) {
+			keys = keys.sort();
 			for (let i = 0; i < keys.length; i++) {
-				let val = paramsmap.get(keys[i]);
+				let val = paramsmap[keys[i]];
 				payloads.push(keys[i] + "=" + val);
 				payloads_encode.push(keys[i] + "=" + encodeURIComponent(val));
 			}
@@ -73,7 +85,7 @@ export const $apitools = {
 	/**
 	 * Api自动签名请求
 	 */
-	apiRequest: function (opt) {
+	apiRequest(opt) {
 		let session = this.getSession();
 		opt.session = session;
 		if (!session || !session.secretKey || !session.accessKey) {
@@ -98,7 +110,7 @@ export const $apitools = {
 	/**
 	 * 相应结构格式化
 	 */
-	apiResponseFormat: function (xhr) {
+	apiResponseFormat(xhr) {
 		let result = {
 			code: 0,
 			data: '',
@@ -134,7 +146,7 @@ export const $apitools = {
 		return result;
 	},
 	// Api 状态返回翻译和处理
-	apiResponseStautsHandler: function (res) {
+	apiResponseStautsHandler(res) {
 		if (res) {
 			if (res.code == 401) {
 				res.data = "登录过期,请刷新页面";
@@ -148,7 +160,7 @@ export const $apitools = {
 	/**
 	 * APi-Get请求
 	 */
-	apiGet: function (uri, datas) {
+	apiGet(uri, datas) {
 		return new Promise((resolve, reject) => {
 			this.apiRequest({
 				uri: uri,
@@ -168,7 +180,7 @@ export const $apitools = {
 	/**
 	 * APi-Post请求
 	 */
-	apiPost: function (uri, datas) {
+	apiPost(uri, datas) {
 		return new Promise((resolve, reject) => {
 			this.apiRequest({
 				uri: uri,
@@ -186,13 +198,13 @@ export const $apitools = {
 			});
 		})
 	},
-	apiPostSync: function (uri, datas) {
+	apiPostSync(uri, datas) {
 		return this.apiRequest({
 			uri: uri,
 			method: "POST",
 			datas: datas,
 			async: false,
-		}).do(function (xhr, opt) {
+		}).do((xhr, opt) => {
 			if (xhr.readyState === 4) {
 				let res = this.apiResponseFormat(xhr);
 				if (res.code === 200) {
@@ -206,13 +218,13 @@ export const $apitools = {
 	/**
 	 * APi-Delete请求
 	 */
-	apiDelete: function (uri, datas) {
-		return new Promise(function (resolve, reject) {
+	apiDelete(uri, datas) {
+		return new Promise((resolve, reject) => {
 			this.apiRequest({
 				uri: uri,
 				method: "DELETE",
 				datas: datas,
-			}).do(function (xhr, opt) {
+			}).do((xhr, opt) => {
 				if (xhr.readyState === 4) {
 					let res = this.apiResponseFormat(xhr);
 					if (res.code === 200) {
@@ -224,13 +236,13 @@ export const $apitools = {
 			});
 		})
 	},
-	apiDeleteSync: function (uri, datas) {
+	apiDeleteSync(uri, datas) {
 		return this.apiRequest({
 			uri: uri,
 			method: "DELETE",
 			datas: datas,
 			async: false,
-		}).do(function (xhr, opt) {
+		}).do((xhr, opt) => {
 			if (xhr.readyState === 4) {
 				let res = this.apiResponseFormat(xhr);
 				if (res.code === 200) {
@@ -244,7 +256,7 @@ export const $apitools = {
 	/**
 	 * 保存会话到cookie中
 	 */
-	saveSession: function (accessObj) {
+	saveSession(accessObj) {
 		localStorage.setItem(this._Const.ack, "");
 		if (accessObj && accessObj.accessKey) {
 			localStorage.setItem(this._Const.ack, JSON.stringify(accessObj));
@@ -255,7 +267,7 @@ export const $apitools = {
 	 * 获取会话信息
 	 * {UserId, accessKey, secretKey}
 	 */
-	getSession: function () {
+	getSession() {
 		try {
 			return JSON.parse(localStorage.getItem(this._Const.ack));
 		} catch (err) {
@@ -265,7 +277,7 @@ export const $apitools = {
 	/**
 	 * 注销会话
 	 */
-	destroySession: function () {
+	destroySession() {
 		localStorage.setItem(this._Const.ack, '');
 		$utils.setCookie("X-Ack", '');
 	},

@@ -12,7 +12,6 @@
 package controller
 
 import (
-	"encoding/json"
 	"errors"
 	"fileservice/biz/modules/filedatas"
 	"fileservice/biz/service"
@@ -86,7 +85,7 @@ func (ctl *FileOptsCtrl) Info(w http.ResponseWriter, r *http.Request) {
 		serviceutil.SendBadRequest(w, qpath+" is not exist")
 		return
 	}
-	serviceutil.SendSuccess(w, ctl.fm.GetNode(qpath).ToDto().ToJSON())
+	serviceutil.SendSuccess(w, ctl.fm.GetNode(qpath).ToDto())
 }
 
 // List 查询路径下的列表以及基本信息
@@ -127,14 +126,10 @@ func (ctl *FileOptsCtrl) List(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	//
-	if json, err := json.Marshal(filedatas.FileListSorter{
+	serviceutil.SendSuccess(w, filedatas.FileListSorter{
 		Asc:       strutil.String2Bool(qAsc),
 		SortField: qSort,
-	}.Sort(res)); err != nil {
-		serviceutil.SendServerError(w, err.Error())
-	} else {
-		serviceutil.SendSuccess(w, string(json))
-	}
+	}.Sort(res))
 }
 
 // Del 批量|单个删除文件|文件夹

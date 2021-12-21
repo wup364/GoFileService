@@ -1,6 +1,6 @@
 <template>
   <Modal
-    v-model="showDailog"
+    v-model="isShowDailog"
     :closable="false"
     :mask-closable="false"
     :width="copySettings.width"
@@ -80,8 +80,9 @@ export default {
       },
     },
   },
-  data: function () {
+  data() {
     return {
+      isShowDailog: false,
       operations: {
         stop: "discontinue",
         ignore: "ignore",
@@ -106,8 +107,7 @@ export default {
     };
   },
   methods: {
-    doCopy: function () {
-      let _ = this;
+    doCopy() {
       if (
         this.operationData.srcPaths &&
         this.operationData.srcPaths.length > 0
@@ -125,31 +125,30 @@ export default {
             this.copySettings.replace,
             this.copySettings.ignore
           )
-          .then(function (data) {
-            if (_.operationData.srcPaths.length > 1) {
-              _.operationData.srcPaths = _.operationData.srcPaths.slice(
+          .then((data) => {
+            if (this.operationData.srcPaths.length > 1) {
+              this.operationData.srcPaths = this.operationData.srcPaths.slice(
                 0,
-                _.operationData.srcPaths.length - 1
+                this.operationData.srcPaths.length - 1
               );
             } else {
-              _.operationData.srcPaths = [];
+              this.operationData.srcPaths = [];
             }
-            _.operationData.token = data;
+            this.operationData.token = data;
           })
-          .catch(function (err) {
-            _.$Message.error(err.toString());
-            _.$emit("on-error");
+          .catch((err) => {
+            this.$Message.error(err.toString());
+            this.$emit("on-error");
           });
       }
     },
-    doRefreshPs: function () {
+    doRefreshPs() {
       if (!this.operationData.token || this.operationData.token == "") {
         return;
       }
-      let _ = this;
       $fileopts
         .AsyncExecToken("CopyFile", this.operationData.token)
-        .then(function (data) {
+        .then((data) => {
           /*
 						{
 							"CountIndex":7,
@@ -166,106 +165,102 @@ export default {
 							"IsDiscontinue":false
 						}
 					*/
-          data = JSON.parse(data);
           // console.log( data )
           if (data.CountIndex > 0) {
-            _.operationData.opCount = data.CountIndex;
+            this.operationData.opCount = data.CountIndex;
           }
           if (data.IsComplete) {
-            _.operationData.token = "";
+            this.operationData.token = "";
             if (data.IsDiscontinue) {
-              _.showDailog = false;
-              _.$Message.error("复制已终止");
-              _.$emit("on-stop");
+              this.isShowDailog = false;
+              this.$Message.error("复制已终止");
+              this.$emit("on-stop");
             } else {
               if (
-                !_.operationData.srcPaths ||
-                _.operationData.srcPaths.length == 0
+                !this.operationData.srcPaths ||
+                this.operationData.srcPaths.length == 0
               ) {
-                _.showDailog = false;
+                this.isShowDailog = false;
                 if (data.ErrorString && data.ErrorString.length > 0) {
-                  _.$Message.error(data.ErrorString);
+                  this.$Message.error(data.ErrorString);
                 } else {
-                  _.$Message.success("复制完成");
+                  this.$Message.success("复制完成");
                 }
-                _.$emit("on-end");
+                this.$emit("on-end");
               } else {
-                _.operationData.multiCount += _.operationData.opCount;
-                _.doCopy();
+                this.operationData.multiCount += this.operationData.opCount;
+                this.doCopy();
               }
             }
             return;
           }
-          _.operationData.nowSrcPath = data.Src;
-          _.operationData.nowDstPath = data.Dst;
+          this.operationData.nowSrcPath = data.Src;
+          this.operationData.nowDstPath = data.Dst;
           //
-          _.copyError.IsError =
+          this.copyError.IsError =
             data.ErrorString && data.ErrorString.length > 0 ? true : false;
-          _.copyError.Error = _.parseError(data);
-          _.copyError.IsExist = data.IsDstExist;
-          setTimeout(function () {
-            _.doRefreshPs();
+          this.copyError.Error = this.parseError(data);
+          this.copyError.IsExist = data.IsDstExist;
+          setTimeout(() => {
+            this.doRefreshPs();
           }, 100);
         })
-        .catch(function (err) {
-          _.$Message.error(err.toString());
+        .catch((err) => {
+          this.$Message.error(err.toString());
         });
     },
-    doStop: function () {
+    doStop() {
       if (this.operationData.token && this.operationData.token.length > 0) {
-        let _ = this;
         $fileopts
           .AsyncExecToken("CopyFile", this.operationData.token, {
             operation: this.operations.stop,
           })
-          .then(function (data) {
-            _.operationData.opCount = 0;
-            _.operationData.multiCount = 0;
-            _.operationData.srcPaths = [];
-            _.operationData.destPath = [];
+          .then((data) => {
+            this.operationData.opCount = 0;
+            this.operationData.multiCount = 0;
+            this.operationData.srcPaths = [];
+            this.operationData.destPath = [];
           })
-          .catch(function (err) {
-            _.$Message.error(err.toString());
+          .catch((err) => {
+            this.$Message.error(err.toString());
           });
       }
     },
-    doIgnore: function () {
+    doIgnore() {
       if (!this.operationData.token || this.operationData.token == "") {
         return;
       }
-      let _ = this;
       $fileopts
         .AsyncExecToken("CopyFile", this.operationData.token, {
           operation: this.copySettings.ignore
             ? this.operations.ignoreall
             : this.operations.ignore,
         })
-        .then(function (data) {
+        .then((data) => {
           // console.log(data);
         })
-        .catch(function (err) {
-          _.$Message.error(err.toString());
+        .catch((err) => {
+          this.$Message.error(err.toString());
         });
     },
-    doReplace: function () {
+    doReplace() {
       if (!this.operationData.token || this.operationData.token == "") {
         return;
       }
-      let _ = this;
       $fileopts
         .AsyncExecToken("CopyFile", this.operationData.token, {
           operation: this.copySettings.replace
             ? this.operations.replaceall
             : this.operations.replace,
         })
-        .then(function (data) {
+        .then((data) => {
           // console.log(data);
         })
-        .catch(function (err) {
-          _.$Message.error(err.toString());
+        .catch((err) => {
+          this.$Message.error(err.toString());
         });
     },
-    parseError: function (data) {
+    parseError(data) {
       if (data && data.ErrorString) {
         if (data.IsDstExist) {
           return "目标位置已存在: " + data.Dst;
@@ -279,12 +274,12 @@ export default {
     },
   },
   watch: {
-    "operationData.token": function (n, o) {
+    "operationData.token"(n, o) {
       if (n && n != "") {
         this.doRefreshPs();
       }
     },
-    showDailog: function (n, o) {
+    showDailog(n, o) {
       if (n) {
         this.copyError.IsError = false;
         this.copyError.Error = "";
@@ -293,11 +288,12 @@ export default {
         this.copySettings.replace = false;
         this.operationData.opCount = 0;
         this.operationData.multiCount = 0;
-        this.operationData.showDailog = this.showDailog;
+        this.operationData.showDailog = n;
         this.operationData.srcPaths = this.srcPaths;
         this.operationData.destPath = this.destPath;
         this.doCopy();
       }
+      this.isShowDailog = n;
     },
   },
 };

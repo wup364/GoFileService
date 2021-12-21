@@ -554,7 +554,6 @@ export default {
         .listAllUsers()
         .then(function (datas) {
           if (datas) {
-            datas = JSON.parse(datas);
             for (let i = 0; i < datas.length; i++) {
               _.doBuildAccountInfo(datas[i]);
             }
@@ -653,9 +652,6 @@ export default {
       $filepms
         .listFPermissions()
         .then(function (datas) {
-          if (datas) {
-            datas = JSON.parse(datas);
-          }
           _.$set(_.fPermissionManage, "datas", datas);
           _.fPermissionManage.loading = false;
         })
@@ -672,7 +668,7 @@ export default {
         .listAllUsers()
         .then(function (datas) {
           if (datas) {
-            _.fPermissionManage.userselector.datas = JSON.parse(datas);
+            _.fPermissionManage.userselector.datas = datas;
           }
         })
         .catch(console.error);

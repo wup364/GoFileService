@@ -332,7 +332,7 @@ func (task *CopyFile) Status(w http.ResponseWriter, r *http.Request) {
 	task.token.RefreshToken(qToken, tokenBody)
 	// 用于获取令牌信息
 	if len(qOperation) == 0 {
-		serviceutil.SendSuccess(w, tokenBody.ToJSON())
+		serviceutil.SendSuccess(w, tokenBody)
 
 		// 用于操作|中断
 	} else {

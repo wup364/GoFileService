@@ -84,7 +84,8 @@
       </div>
       <Table
         ref="fsSelection"
-        v-minus-height="130"
+        :height="tableHeight"
+        v-minus-height="(h) => (tableHeight = h - 130)"
         :loading="loading"
         :columns="fsColumns"
         :data="fsData"
@@ -168,6 +169,7 @@ import { $utils } from "../js/utils";
 import { $apitools } from "../js/apis/apitools";
 import { $fileopts } from "../js/apis/fileopts";
 import { $filepms } from "../js/apis/filepermission";
+import { $filepreview } from "../js/apis/filepreview";
 export default {
   name: "FileList",
   components: {
@@ -178,9 +180,10 @@ export default {
     fileSelector,
     fileicon,
   },
-  data: function () {
+  data() {
     let _ = this;
     return {
+      tableHeight: 500,
       searchText: "",
       fsCopyFile: {
         showDailog: false,
@@ -226,15 +229,15 @@ export default {
         {
           title: "文件名称",
           key: "path",
-          render: function (h, params) {
+          render(h, params) {
             return h(fileicon, {
               props: {
                 node: params.row,
-                isEditor: params.row.showRename ? true : false,
+                editMode: params.row.showRename ? true : false,
               },
               on: {
                 click: _.doOpen,
-                doRename: function (path, name) {
+                doRename: (path, name) => {
                   _.onRenameAfter(params.index, params.row, name);
                 },
               },
@@ -245,7 +248,7 @@ export default {
           title: "修改时间",
           key: "mtime",
           maxWidth: 160,
-          render: function (h, params) {
+          render(h, params) {
             return h("span", $utils.long2Time(params.row.mtime));
           },
         },
@@ -253,7 +256,7 @@ export default {
           title: "文件大小",
           key: "size",
           maxWidth: 160,
-          render: function (h, params) {
+          render(h, params) {
             if (params.row.isFile) {
               return h("span", $utils.formatSize(params.row.size));
             } else {
@@ -277,7 +280,7 @@ export default {
         refresh: {
           name: "刷新",
           show: true,
-          handler: function () {
+          handler() {
             _.doRefresh();
           },
           icon: "ivu-icon ivu-icon-md-refresh-circle",
@@ -286,7 +289,7 @@ export default {
         upload: {
           name: "上传",
           show: false,
-          handler: function () {
+          handler() {
             _.fsUpload.showDrawer = true;
           },
           icon: "ivu-icon ivu-icon-md-cloud-upload",
@@ -295,7 +298,7 @@ export default {
         newFolder: {
           name: "文件夹",
           show: false,
-          handler: function () {
+          handler() {
             _.onNewFolder();
           },
           icon: "ivu-icon ivu-icon-md-add-circle",
@@ -304,7 +307,7 @@ export default {
         download: {
           name: "下载",
           show: false,
-          handler: function () {
+          handler() {
             _.doDownload();
           },
           icon: "ivu-icon ivu-icon-md-download",
@@ -313,7 +316,7 @@ export default {
         rename: {
           name: "重命名",
           show: false,
-          handler: function () {
+          handler() {
             _.onRename();
           },
           icon: "ivu-icon ivu-icon-ios-create",
@@ -322,7 +325,7 @@ export default {
         move: {
           name: "移动",
           show: false,
-          handler: function () {
+          handler() {
             _.doMove();
           },
           icon: "ivu-icon ivu-icon-md-move",
@@ -331,7 +334,7 @@ export default {
         copy: {
           name: "复制",
           show: false,
-          handler: function () {
+          handler() {
             _.doCopy();
           },
           icon: "ivu-icon ivu-icon-ios-copy",
@@ -340,7 +343,7 @@ export default {
         delete: {
           name: "删除",
           show: false,
-          handler: function () {
+          handler() {
             _.onDelete();
           },
           icon: "ivu-icon ivu-icon-md-trash",
@@ -351,33 +354,32 @@ export default {
   },
   computed: {},
   methods: {
-    doRefresh: function () {
+    doRefresh() {
       this.doLoadData(this.fsAddress.loadPath);
     },
-    doLoadData: function (path) {
+    doLoadData(path) {
       if (this.loading) {
         return;
       }
-      let _ = this;
-      _.loading = true;
+      this.loading = true;
       this.onSelectionChange([], {});
       this.fsData_All = [];
       this.fsData = [];
       $fileopts
         .List(path)
-        .then(function (data) {
-          _.fsData_All = JSON.parse(data);
-          _.fsData_CurrentPageIndex = 1;
-          _.loadDatePage();
-          // _.loading = false;
+        .then((data) => {
+          this.fsData_All = data;
+          this.fsData_CurrentPageIndex = 1;
+          this.loadDatePage();
+          // this.loading = false;
         })
-        .catch(function (err) {
+        .catch((err) => {
           console.error(err);
-          _.loading = false;
-          _.$Message.error(err.toString());
+          this.loading = false;
+          this.$Message.error(err.toString());
         });
     },
-    loadDatePage: function (index) {
+    loadDatePage(index) {
       let dataAll = [];
       if (this.searchText) {
         let stemp = this.searchText.toLowerCase();
@@ -399,87 +401,84 @@ export default {
       this.doWarpPermission(fsData);
     },
     // 包裹权限信息
-    doWarpPermission: function (datas) {
+    doWarpPermission(datas) {
       // if(!datas || datas.length == 0){
       //   this.loading = false; return;
       // }
       this.permissionsMap = {};
       let paths = [this.fsAddress.loadPath];
-      datas.forEach(function (row) {
+      datas.forEach((row) => {
         paths.push(row.path);
       });
-      let _ = this;
       $filepms
         .GetUserPermissionSum($apitools.getSession().userID, paths)
-        .then(function (pms) {
-          _.permissionsMap = pms ? JSON.parse(pms) : {};
+        .then((pms) => {
+          this.permissionsMap = pms ? pms : {};
           for (let i = 0; i < datas.length; i++) {
             datas[i].Permission =
-              undefined != _.permissionsMap[datas[i].path]
-                ? _.permissionsMap[datas[i].path]
+              undefined != this.permissionsMap[datas[i].path]
+                ? this.permissionsMap[datas[i].path]
                 : -1;
             datas[i].PermissionText = $filepms.$TYPE
               .sum2Name(datas[i].Permission)
               .join(", ");
           }
-          _.fsData = datas;
-          _.onSelectionChange();
-          _.loading = false;
+          this.fsData = datas;
+          this.onSelectionChange();
+          this.loading = false;
         })
-        .catch(function (err) {
-          _.loading = false;
-          _.$Message.error(err.toString());
+        .catch((err) => {
+          this.loading = false;
+          this.$Message.error(err.toString());
         });
     },
     /* 重命名 */
-    doRename: function (index, row, name) {
+    doRename(index, row, name) {
       row.showRename = false;
       this.$set(this.fsData, index, row);
       if (!name || row.path.getName() == name) {
         return;
       }
-      let _ = this;
       $fileopts
         .Rename(row.path, name)
-        .then(function () {
-          _.$Message.info("操作成功");
-          _.doRefresh();
+        .then(() => {
+          this.$Message.info("操作成功");
+          this.doRefresh();
         })
-        .catch(function (err) {
-          _.$Message.error("操作失败: " + err.toString());
-          _.doRefresh();
+        .catch((err) => {
+          this.$Message.error("操作失败: " + err.toString());
+          this.doRefresh();
         });
     },
     /** 新建文件夹 */
-    doNewFolder: function (index, row, name) {
+    doNewFolder(index, row, name) {
       if (!name) {
         this.doRefresh();
         return;
       }
-      let _ = this;
       $fileopts
         .NewFolder(this.fsAddress.loadPath + "/" + name)
-        .then(function () {
-          _.$Message.info("操作成功");
-          _.doRefresh();
+        .then(() => {
+          this.$Message.info("操作成功");
+          this.doRefresh();
         })
-        .catch(function (err) {
-          _.$Message.error("操作失败: " + err.toString());
-          _.doRefresh();
+        .catch((err) => {
+          this.$Message.error("操作失败: " + err.toString());
+          this.doRefresh();
         });
     },
-    onDelete: function () {
+    onDelete() {
       let _ = this;
       this.$Modal.confirm({
         title: "删除文件",
         content: "此操作不可逆, 是否继续删除?",
-        onOk: function () {
+        onOk() {
           _.doDelete();
         },
       });
     },
     /* 删除文件|文件夹 */
-    doDelete: function () {
+    doDelete() {
       let select = this.$refs.fsSelection.getSelection();
       if (!select || select.length == 0) {
         return;
@@ -489,16 +488,15 @@ export default {
         duration: 0,
       });
       let errs = [];
-      let _ = this;
-      function loop(i) {
+      let loop = (i) => {
         if (!i) {
           i = 0;
         }
         if (i == select.length) {
           del_loading();
-          _.doRefresh();
+          this.doRefresh();
           if (errs && errs.length > 0) {
-            _.$Message.error({
+            this.$Message.error({
               content: errs.join("</br>"),
               duration: 5,
             });
@@ -507,20 +505,20 @@ export default {
         }
         $fileopts
           .Delete(select[i].path)
-          .then(function () {
-            setTimeout(function () {
+          .then(() => {
+            setTimeout(() => {
               loop(++i);
             });
           })
-          .catch(function (err) {
+          .catch((err) => {
             errs.push(select[i].path + "删除失败: " + err);
             loop(++i);
           });
-      }
+      };
       loop(0);
     },
     /* 开始复制 */
-    doCopy: function () {
+    doCopy() {
       // 设置源路径
       this.fsCopyFile.srcPaths = this.$refs.fsSelection.getSelection();
       // 文件选择框
@@ -532,7 +530,7 @@ export default {
       this.fsSelector.showDailog = true;
     },
     /* 开始移动 */
-    doMove: function () {
+    doMove() {
       // 设置源路径
       this.fsMoveFile.srcPaths = this.$refs.fsSelection.getSelection();
       // 文件选择框
@@ -544,34 +542,33 @@ export default {
       this.fsSelector.showDailog = true;
     },
     /* 下载单个|多个文件 */
-    doDownload: function () {
+    doDownload() {
       let select = this.$refs.fsSelection.getSelection();
       if (!select || select.length == 0) {
         return;
       }
-      let _ = this;
       for (let i = select.length - 1; i >= 0; i--) {
         if (!select[i].isFile) {
           continue;
         }
         $fileopts
           .GetDownloadUrl(select[i].path)
-          .then(function (data) {
-            _.$nextTick(function () {
+          .then((data) => {
+            this.$nextTick(() => {
               let download = document.createElement("iframe");
               download.src = data;
               document.body.appendChild(download);
             });
           })
-          .catch(function (err) {
-            _.$Message.error(
+          .catch((err) => {
+            this.$Message.error(
               "操作失败: " + select[i].path + ", " + err.toString()
             );
           });
       }
     },
     /* 重命名文件|文件夹 */
-    onRename: function () {
+    onRename() {
       let select = this.$refs.fsSelection.getSelection();
       if (!select || select.length == 0) {
         return;
@@ -584,21 +581,20 @@ export default {
       }
     },
     /* 打开文件 */
-    doOpen: function (node) {
+    doOpen(node) {
       if (!node.isFile) {
         this.goToPath(node.path);
       } else {
-        let _ = this;
-        $preview.doPreview(node.path).catch(function (err) {
+        $filepreview.doPreview(node.path).catch((err) => {
           $fileopts
             .GetSteamUrl(node.path)
-            .then(function (data) {
-              _.$nextTick(function () {
+            .then((data) => {
+              this.$nextTick(() => {
                 window.open(data);
               });
             })
-            .catch(function (err) {
-              _.$Message.error(
+            .catch((err) => {
+              this.$Message.error(
                 "操作失败: " + node.path + ", " + err.toString()
               );
             });
@@ -606,7 +602,7 @@ export default {
       }
     },
     /** 重命名|新建文件夹二合一事件 */
-    onRenameAfter: function (index, row, name) {
+    onRenameAfter(index, row, name) {
       if (row.IsNewFolder) {
         this.doNewFolder(index, row, name);
       } else {
@@ -614,7 +610,7 @@ export default {
       }
     },
     /** 新建文件 */
-    onNewFolder: function () {
+    onNewFolder() {
       let temp = this.fsData;
       temp.unshift({
         path: "",
@@ -625,7 +621,7 @@ export default {
       this.$set(this, "fsData", temp);
     },
     /* 选择单个文件夹 - OK */
-    onSelectedFile: function (rows) {
+    onSelectedFile(rows) {
       this.fsSelector.showDailog = false;
       if (rows && rows[0] && rows[0].path && rows[0].path.length > 0) {
         if (this.fsSelector.operationObj) {
@@ -637,17 +633,17 @@ export default {
       }
     },
     /* 选择单个文件夹 - Cancel */
-    onSelectCancel: function () {
+    onSelectCancel() {
       this.fsSelector.showDailog = false;
     },
-    onHiddenCopy: function () {
+    onHiddenCopy() {
       this.fsCopyFile.showDailog = false;
     },
-    onHiddenMove: function () {
+    onHiddenMove() {
       this.fsMoveFile.showDailog = false;
       this.doRefresh();
     },
-    goToPath: function (path) {
+    goToPath(path) {
       if (this.fsAddress.loadPath != path) {
         this.fsAddress.loadPath = path;
       } else {
@@ -655,7 +651,7 @@ export default {
       }
     },
     // 点击一行
-    onRowClick: function (row, index) {
+    onRowClick(row, index) {
       for (let i = 0; i < this.fsData.length; i++) {
         if (this.fsData[i]._checked && index != i) {
           this.$set(this.fsData[i], "_checked", false);
@@ -665,7 +661,7 @@ export default {
       this.onSelectionChange([row], row);
     },
     // 当Checkbox数据发生变化, 则需要刷新按钮
-    onSelectionChange: function (selection, row) {
+    onSelectionChange(selection, row) {
       // 处理按钮是否显示
       this.fsOperationButtons.upload.show = false;
       this.fsOperationButtons.newFolder.show = false;
@@ -727,21 +723,20 @@ export default {
       }
     },
   },
-  mounted: function () {},
-  created: function () {
+  mounted() {},
+  created() {
     this.goToPath(this.fsAddress.rootPath);
     this.fsOperationButtons.upload.show = true;
-    let _ = this;
-    this.$nextTick(function () {
+    this.$nextTick(() => {
       $utils.areaCover({
-        background: _.$refs.fsSelection.$el,
+        background: this.$refs.fsSelection.$el,
         coverfilter: ".ivu-table-row",
-        onCover: function (el) {
+        onCover(el) {
           if (!el.querySelector(".ivu-checkbox-input").checked) {
             el.querySelector(".ivu-checkbox-input").click();
           }
         },
-        onUnCover: function (el) {
+        onUnCover(el) {
           if (el.querySelector(".ivu-checkbox-input").checked) {
             el.querySelector(".ivu-checkbox-input").click();
           }
@@ -750,7 +745,7 @@ export default {
     });
   },
   watch: {
-    "fsAddress.loadPath": function (n, o) {
+    "fsAddress.loadPath"(n, o) {
       this.doLoadData(n);
     },
   },

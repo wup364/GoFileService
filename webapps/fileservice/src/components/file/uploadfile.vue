@@ -2,7 +2,7 @@
   <Drawer
     title="上传文件"
     width="450px"
-    v-model="showDrawer"
+    v-model="isShowDrawer"
     @on-close="$emit('on-close')"
   >
     <div class="ivu-upload">
@@ -71,15 +71,15 @@
   </Drawer>
 </template>
 
- 
 <script>
 import { $utils } from "../../js/utils";
 import { $fileopts } from "../../js/apis/fileopts";
 export default {
   name: "uploadfile",
   props: ["show-drawer", "parent", "drag-ref"],
-  data: function () {
+  data() {
     return {
+      isShowDrawer: false, // 显示抽屉
       maxuploading: 5, // 最大正在上传的个数
       countuploading: 0, // 正在上传的个数
       dindex: 0, // 当前数据下标
@@ -89,38 +89,37 @@ export default {
   },
   methods: {
     // 上传-触发选择文件
-    doSelectFiels: function (ev) {
-      let _ = this;
+    doSelectFiels(ev) {
       let emited = false;
       $utils.addEvent(
         this.$refs.upload_selector_file,
         "change",
-        function (ev_data) {
+        (ev_data) => {
           if (ev_data.target.files) {
             for (let i = 0; i < ev_data.target.files.length; i++) {
               let fs = ev_data.target.files[i];
               fs._upload = {
-                base: _.parent,
-                index: _.files.length,
+                base: this.parent,
+                index: this.files.length,
                 updater: false,
                 ps: 0,
               };
               if (!emited) {
                 emited = true;
-                _.$emit("on-start");
+                this.$emit("on-start");
               }
-              _.files.push(fs);
-              _.doStartUpload();
+              this.files.push(fs);
+              this.doStartUpload();
             }
           }
-          _.$refs.upload_selector_file.value = "";
+          this.$refs.upload_selector_file.value = "";
         },
         { once: true }
       );
       $utils.triggerMouseEvent(this.$refs.upload_selector_file, "click");
     },
     // 上传-触发上传动作
-    doStartUpload: function () {
+    doStartUpload() {
       if (this.files && this.files.length > 0) {
         if (this.countuploading >= this.maxuploading) {
           return;
@@ -139,30 +138,29 @@ export default {
           return;
         }
         // file._upload.index = this.dindex-1;
-        let _ = this;
         let opts = {
           form: {},
           header: {},
-          progress: function (e) {
+          progress: (e) => {
             // 数据源为数组, 需要直接设置数组
             file._upload.ps = Math.round((e.loaded / e.total) * 1000) / 10;
-            _.$set(_.files, file._upload.index, file);
+            this.$set(this.files, file._upload.index, file);
           },
-          error: function (e) {
+          error: (e) => {
             file._upload.err = e ? e.toString() : "上传失败";
-            _.$set(_.files, file._upload.index, file);
+            this.$set(this.files, file._upload.index, file);
           },
-          abort: function (e) {
+          abort: (e) => {
             file._upload.err = "上传取消";
-            _.$set(_.files, file._upload.index, file);
+            this.$set(this.files, file._upload.index, file);
           },
-          loadstart: function (e) {},
-          loadend: function (e) {
-            _.countuploading--;
+          loadstart: (e) => {},
+          loadend: (e) => {
+            this.countuploading--;
             file._upload.ended = true;
-            _.$nextTick(function () {
-              _.doStartUpload();
-              //_.removeTask(file._upload.index);
+            this.$nextTick(() => {
+              this.doStartUpload();
+              //this.removeTask(file._upload.index);
             });
           },
         };
@@ -170,18 +168,20 @@ export default {
         file._upload.started = true;
         $fileopts
           .GetUploadUrl(file._upload.base + "/" + file.name)
-          .then(function (url) {
+          .then((url) => {
+            console.log(file);
             file._upload.updater = $utils.uploadByFormData(url, file, opts);
             file._upload.updater.start();
           })
-          .catch(function (err) {
+          .catch((err) => {
+            console.error(err);
             opts.error(err);
             opts.loadend();
           });
       }
     },
     // 上传 - 移除任务
-    removeTask: function (index) {
+    removeTask(index) {
       let file = this.files[index];
       if (file) {
         // 正在传输
@@ -193,21 +193,20 @@ export default {
       }
     },
     // 上传 - 监听拖拽
-    doListenDrag: function (key) {
-      let _ = this;
-      this.$nextTick(function () {
+    doListenDrag(key) {
+      this.$nextTick(() => {
         let obj = undefined;
         if (key) {
-          if (_.$refs[key]) {
-            obj = _.$refs[key];
-          } else if (_.$parent && _.$parent.$refs) {
-            obj = _.$parent.$refs[key];
+          if (this.$refs[key]) {
+            obj = this.$refs[key];
+          } else if (this.$parent && this.$parent.$refs) {
+            obj = this.$parent.$refs[key];
           }
         }
         if (!obj) {
           return;
         }
-        obj.ondrop = function (evn) {
+        obj.ondrop = (evn) => {
           evn.preventDefault();
           let emited = false;
           let fileList = evn.dataTransfer.files;
@@ -217,31 +216,65 @@ export default {
               continue;
             }
             fs._upload = {
-              base: _.parent,
-              index: _.files.length,
+              base: this.parent,
+              index: this.files.length,
               updater: false,
               ps: 0,
             };
             if (!emited) {
               emited = true;
-              _.$emit("on-start");
+              this.$emit("on-start");
             }
-            _.files.push(fs);
-            _.doStartUpload();
+            this.files.push(fs);
+            this.doStartUpload();
           }
         };
       });
     },
+    // 停止所有拖拽动作
+    stopDrop() {
+      console.log(this.$el);
+      try {
+        this.$el.ondrop = function (Even) {
+          Even.preventDefault();
+          Even.stopPropagation();
+        };
+        this.$el.ondragover = function (Even) {
+          Even.preventDefault();
+          Even.stopPropagation();
+        };
+        this.$el.ondragleave = function (Even) {
+          Even.preventDefault();
+          Even.stopPropagation();
+        };
+        this.$el.ondragenter = function (Even) {
+          Even.preventDefault();
+          Even.stopPropagation();
+        };
+        this.$el.oncontextmenu = function (Even) {
+          Even.preventDefault();
+          Even.stopPropagation();
+        };
+      } catch (Err_Catch) {
+        console.error(Err_Catch);
+      }
+    },
   },
-  created: function () {
-    this.doListenDrag("uploadDrag");
-    this.doListenDrag(this.dragRef);
+  created() {
+    this.$nextTick(() => {
+      this.stopDrop();
+      this.doListenDrag("uploadDrag");
+      this.doListenDrag(this.dragRef);
+    });
   },
   watch: {
-    countuploading: function (n, o) {
+    countuploading(n) {
       if (n <= 0 && this.dindex >= this.files.length) {
         this.$emit("on-end");
       }
+    },
+    showDrawer(n) {
+      this.isShowDrawer = n;
     },
   },
 };

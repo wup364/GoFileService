@@ -16,8 +16,8 @@ export const $userApi = { sync: {} };
  * 登录
  * return {userID, accessKey, secretKey}
  */
-$userApi.login = function (user, pwd) {
-	return new Promise(function (resolve, reject) {
+$userApi.login = (user, pwd) => {
+	return new Promise((resolve, reject) => {
 		$utils.AjaxRequest({
 			method: "POST",
 			uri: $apitools.buildAPIURL("/user/v1/checkpwd"),
@@ -25,7 +25,7 @@ $userApi.login = function (user, pwd) {
 				"userid": user,
 				"pwd": pwd,
 			},
-		}).do(function (xhr, opt) {
+		}).do((xhr, opt) => {
 			if (xhr.readyState === 4) {
 				var res = $apitools.apiResponseFormat(xhr);
 				if (res.code === 200) {
@@ -38,35 +38,35 @@ $userApi.login = function (user, pwd) {
 	});
 };
 // logout
-$userApi.logout = function () {
+$userApi.logout = () => {
 	return $apitools.apiPost("/user/v1/logout")
 };
 // QueryUser
-$userApi.queryuser = function (userid) {
+$userApi.queryuser = (userid) => {
 	return $apitools.apiGet("/user/v1/queryuser", {
 		"userid": userid
 	})
 };
 // UpdateUserName
-$userApi.updateUserName = function (userid, username) {
+$userApi.updateUserName = (userid, username) => {
 	return $apitools.apiPost("/user/v1/updateusername", {
 		"userid": userid,
 		"username": username,
 	})
 };
 // UpdateUserPwd
-$userApi.updateUserPwd = function (userid, userpwd) {
+$userApi.updateUserPwd = (userid, userpwd) => {
 	return $apitools.apiPost("/user/v1/updateuserpwd", {
 		"userid": userid,
 		"userpwd": userpwd,
 	})
 };
 // ListAllUsers
-$userApi.listAllUsers = function (userid, userpwd) {
+$userApi.listAllUsers = (userid, userpwd) => {
 	return $apitools.apiGet("/user/v1/listallusers", {})
 };
 // AddUser
-$userApi.addUser = function (userid, username, userpwd) {
+$userApi.addUser = (userid, username, userpwd) => {
 	return $apitools.apiPost("/user/v1/adduser", {
 		'userid': userid,
 		'username': username,
@@ -74,27 +74,27 @@ $userApi.addUser = function (userid, username, userpwd) {
 	})
 };
 // DelUser
-$userApi.delUser = function (userid) {
+$userApi.delUser = (userid) => {
 	return $apitools.apiDelete("/user/v1/deluser", {
 		'userid': userid,
 	})
 };
 // UpdateUserName
-$userApi.sync.updateUserName = function (userid, username) {
+$userApi.sync.updateUserName = (userid, username) => {
 	return $apitools.apiPostSync("/user/v1/updateusername", {
 		"userid": userid,
 		"username": username,
 	})
 };
 // UpdateUserPwd
-$userApi.sync.updateUserPwd = function (userid, userpwd) {
+$userApi.sync.updateUserPwd = (userid, userpwd) => {
 	return $apitools.apiPostSync("/user/v1/updateuserpwd", {
 		"userid": userid,
 		"userpwd": userpwd,
 	})
 };
 // DelUser
-$userApi.sync.delUser = function (userid) {
+$userApi.sync.delUser = (userid) => {
 	return $apitools.apiDeleteSync("/user/v1/deluser", {
 		'userid': userid,
 	})

@@ -11,77 +11,74 @@
 import { $apitools } from "./apitools";
 export const $fileopts = {
 	// 列表路径
-	List: function (path) {
+	List(path) {
 		return $apitools.apiGet("/file/v1/list", { "path": path ? path : '' });
 	},
 	// 移动文件|文件夹
-	Delete: function (path) {
+	Delete(path) {
 		return $apitools.apiDelete("/file/v1/del", {
 			path: path ? path : '',
 		});
 	},
 	// 重命名文件|文件夹
-	Rename: function (path, name) {
+	Rename(path, name) {
 		return $apitools.apiPost("/file/v1/rename", {
 			path: path ? path : '',
 			name: name ? name : '',
 		});
 	},
 	// 新建文件夹
-	NewFolder: function (path) {
+	NewFolder(path) {
 		return $apitools.apiPost("/file/v1/newfolder", {
 			path: path ? path : '',
 		});
 	},
 	// ---------------------------------------------
 	// 获取一个Token, data可以存放值
-	GetStreamToken: function (type, datas) {
+	GetStreamToken(type, datas) {
 		return $apitools.apiGet("/filestream/v1/token", {
 			"type": type ? type : '',
 			"data": datas ? datas : ''
 		});
 	},
 	// 获取一个下载的Url
-	GetDownloadUrl: function (path) {
-		return $fileopts.GetStreamToken('download', path).then(function (data) {
-			let tokenobj = JSON.parse(data);
-			return $apitools.buildAPIURL($apitools.getSignAPIURL("/filestream/v1/read/" + tokenobj.token));
+	GetDownloadUrl(path) {
+		return $fileopts.GetStreamToken('download', path).then((data) => {
+			return $apitools.buildAPIURL($apitools.getSignAPIURL("/filestream/v1/read/" + data.token));
 		});
 	},
 	// 获取一个打开的Url - 流
-	GetSteamUrl: function (path) {
-		return $fileopts.GetStreamToken('stream', path).then(function (data) {
-			let tokenobj = JSON.parse(data);
-			return encodeURI($apitools.buildAPIURL($apitools.getSignAPIURL("/filestream/v1/read/" + tokenobj.token)));
+	GetSteamUrl(path) {
+		return $fileopts.GetStreamToken('download', path).then((data) => {
+			return encodeURI($apitools.buildAPIURL("/filestream/v1/read/" + data.token, { action: 'stream' }));
 		});
 	},
 	// 获取一个上载的Url
-	GetUploadUrl: function (path) {
-		return $fileopts.GetStreamToken('upload', path).then(function (data) {
-			let tokenobj = JSON.parse(data);
-			return $apitools.buildAPIURL($apitools.getSignAPIURL("filestream/v1/put" + tokenobj.token));
+	GetUploadUrl(path) {
+		return $fileopts.GetStreamToken('upload', path).then((data) => {
+			return $apitools.buildAPIURL("/filestream/v1/put/" + data.token);
 		});
 	},
 	// ---------------------------------------------
 	// 异步执行一个动作
-	AsyncExec: function (func, params) {
+	AsyncExec(func, params) {
 		if (!params) {
 			params = {};
 		}
 		params.func = func;
-		return $apitools.apiPost("filetask/v1/asyncexec", params);
+		return $apitools.apiPost("/filetask/v1/asyncexec", params);
 	},
 	// 异步执行Token查询 CopyFile, MoveFile
-	AsyncExecToken: function (func, token, params) {
+	AsyncExecToken(func, token, params) {
 		if (!params) {
 			params = {};
 		}
 		params.func = func;
 		params.token = token;
-		return $apitools.apiGet("filetask/v1/asyncexectoken", params);
+		return $apitools.apiPost("/filetask/v1/asyncexectoken", params);
 	},
 	// 复制文件|文件夹
-	CopyAsync: function (src, dest, replaceExist, ignoreError) {
+	CopyAsync(src, dest, replaceExist, ignoreError) {
 		return this.AsyncExec("CopyFile", {
 			srcPath: src ? src : '',
 			dstPath: dest ? dest : '',
@@ -90,7 +87,7 @@ export const $fileopts = {
 		});
 	},
 	// 移动文件|文件夹
-	MoveAsync: function (src, dest, replaceExist, ignoreError) {
+	MoveAsync(src, dest, replaceExist, ignoreError) {
 		return this.AsyncExec("MoveFile", {
 			srcPath: src ? src : '',
 			dstPath: dest ? dest : '',

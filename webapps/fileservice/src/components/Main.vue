@@ -90,7 +90,7 @@ export default {
           .queryuser(session.userID)
           .then((data) => {
             if (data) {
-              this.$set(this, "currentAccount", JSON.parse(data));
+              this.$set(this, "currentAccount", data);
             }
           })
           .catch((err) => {

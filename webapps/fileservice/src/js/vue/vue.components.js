@@ -10,45 +10,57 @@
 // VUE组件, 无业务属性
 "use strict";
 import Vue from 'vue'
-// 自动适应高度, 自动减去某个值
+/**
+ *  自动适应高度, 有两种传值方式: number | function
+ *  传入function(height): 通过一个回调函数来告诉调用者当前父级的高度, 再在函数里面去刷新高度, 这种方式没有警告. 如: v-minus-height="(h) => (tableHeight = h - 130)"
+ *  传入number: 传入一个数值时, 程序自动改变当前元素告诉, 但控制台可能会有[Vue warring]. 虽不影响功能,但推荐使用函数方式. 如: v-minus-height="130"
+ */
 Vue.directive('minus-height', {
 	// 绑定钩子函数
-	bind: function (el, binding, vnode) { },
+	bind(el, binding, vnode) { },
 	// 绑定到节点函数
-	inserted: function () { },
+	inserted: () => { },
 	// 组件更新钩子函数
-	update: function (el, binding, vnode) { },
+	update(el, binding, vnode) { },
 	// 组件更新完成
-	componentUpdated: function (el, binding, vnode, vnodeold) {
-		if (vnode.v_UnBindMinusHeight) {
-			vnode.v_UnBindMinusHeight();
+	componentUpdated(el, binding, vnode, vnodeold) {
+		if (vnode.v_unbind_minus_height) {
+			vnode.v_unbind_minus_height();
 		}
-		if (vnodeold.v_UnBindMinusHeight) {
-			vnodeold.v_UnBindMinusHeight();
+		if (vnodeold.v_unbind_minus_height) {
+			vnodeold.v_unbind_minus_height();
 		}
-		vnode.v_MinusHeight = function (listen) {
+		// 高度自动处理函数
+		vnode.v_minus_height = (listen) => {
 			try {
 				if (el.parentNode.clientHeight == 0) {
 					return;
 				}
-				vnode.componentInstance.height = el.parentNode.clientHeight - binding.value;
+				if (typeof binding.value === 'function') {
+					// 通过一个回调函数来告诉调用者当前父级的高度, 这种方式没有警告
+					binding.value(el.parentNode.clientHeight);
+				} else {
+					// 当绑定对象不是一个函数时, 控制台可能会有 [Vue warring], 但不影响功能. 推荐使用函数方式
+					vnode.componentInstance.height = el.parentNode.clientHeight - binding.value;
+				}
 			} catch (e) { }
-
 			if (listen === true) {
-				window.addEventListener("resize", vnode.v_MinusHeight, false);
+				window.addEventListener("resize", vnode.v_minus_height, false);
 			}
 		};
-		vnode.v_UnBindMinusHeight = function () {
-			window.removeEventListener("resize", vnode.v_MinusHeight, false);
-			vnode.v_MinusHeight = undefined;
-			vnode.v_UnBindMinusHeight = undefined;
+		// 接触高度变化监控
+		vnode.v_unbind_minus_height = () => {
+			window.removeEventListener("resize", vnode.v_minus_height, false);
+			vnode.v_minus_height = undefined;
+			vnode.v_unbind_minus_height = undefined;
 		}
-		vnode.v_MinusHeight(true);
+		// 监听导读变化
+		vnode.v_minus_height(true);
 	},
 	// 解除指令 
-	unbind: function (el, binding, vnode) {
-		if (vnode.v_UnBindMinusHeight) {
-			vnode.v_UnBindMinusHeight();
+	unbind(el, binding, vnode) {
+		if (vnode.v_unbind_minus_height) {
+			vnode.v_unbind_minus_height();
 		}
 	}
 });
@@ -59,7 +71,7 @@ Vue.directive('minus-height', {
  */
 Vue.component("right-click-menu", {
 	props: ['bindRef', 'menus'],
-	data: function () {
+	data() {
 		return {
 			posX: 0,
 			posY: 0,
@@ -76,17 +88,18 @@ Vue.component("right-click-menu", {
 	</Dropdown>
 	`,
 	computed: {
-		locatorStyle: function () {
+		locatorStyle() {
 			return {
 				position: 'fixed',
 				left: this.posX + 'px',
 				top: this.posY + 'px',
-				maxHeight: 'unset'
+				maxHeight: 'unset',
+				binddom: null,
 			}
 		}
 	},
 	methods: {
-		onClick: function (name) {
+		onClick(name) {
 			this.currentVisible = false
 			if (this.menus[name] && this.menus[name].handler) {
 				try {
@@ -94,12 +107,12 @@ Vue.component("right-click-menu", {
 				} catch (e) { console.error(e); }
 			}
 		},
-		handleContextmenu: function (e) {
-			e.returnValue = false;
+		handleContextmenu(e) {
 			e.preventDefault();
 			e.stopPropagation();
-			this.currentVisible = false;
+			e.returnValue = false;
 			if (e.button === 2) {
+				this.currentVisible = false;
 				if (this.posX !== e.clientX) { this.posX = e.clientX; }
 				if (this.posY !== e.clientY) { this.posY = e.clientY; }
 				this.$nextTick(() => {
@@ -107,10 +120,10 @@ Vue.component("right-click-menu", {
 				});
 			}
 		},
-		handleCancel: function () {
+		handleCancel() {
 			this.currentVisible = false
 		},
-		getRefNode: function () {
+		getRefNode() {
 			if (!this.bindRef) {
 				return document;
 			}
@@ -125,16 +138,16 @@ Vue.component("right-click-menu", {
 			return node ? node.$refs[this.bindRef].$el : {};
 		},
 	},
-	mounted: function () {
-		let node = this.getRefNode();
-		node.addEventListener('contextmenu', this.handleContextmenu, false);
-		node.addEventListener('mouseup', this.handleContextmenu, false);
+	mounted() {
+		this.binddom = this.getRefNode();
+		this.binddom.addEventListener('contextmenu', this.handleContextmenu, true);
+		this.binddom.addEventListener('mouseup', this.handleCancel, true);
 	},
-	destroyed: function () {
+	destroyed() {
 		try {
-			// let node = this.getRefNode();
-			// node.removeEventListener('contextmenu', this.handleContextmenu, false);
-			// node.removeEventListener('mouseup', this.handleContextmenu, false);
+			this.currentVisible = false;
+			this.binddom.removeEventListener('contextmenu', this.handleContextmenu, true);
+			this.binddom.removeEventListener('mouseup', this.handleCancel, true);
 		} catch (e) { }
 	},
 	watch: {

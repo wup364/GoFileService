@@ -22,22 +22,22 @@ export const $filepms = {
 		WRITE: { name: '可写', value: 3 },
 	},
 	// listFPermissions
-	listFPermissions: function () {
+	listFPermissions() {
 		return $apitools.apiGet("/filepms/v1/listfpermissions", {})
 	},
 	// GetUserPermissionSum
-	GetUserPermissionSum: function (userid, paths) {
+	GetUserPermissionSum(userid, paths) {
 		return $apitools.apiPost("/filepms/v1/getuserpermissionsum", {
 			userid: userid ? userid : '',
 			paths: paths ? JSON.stringify(paths) : ''
 		})
 	},
 	// listUserFPermissions
-	listUserFPermissions: function (userid) {
+	listUserFPermissions(userid) {
 		return $apitools.apiGet("/filepms/v1/listuserfpermissions", { userid: userid ? userid : '' })
 	},
 	// addFPermission
-	addFPermission: function (userid, path, permission) {
+	addFPermission(userid, path, permission) {
 		return $apitools.apiPost("/filepms/v1/addfpermission", {
 			'userid': userid ? userid : '',
 			'path': path ? path : '',
@@ -45,13 +45,13 @@ export const $filepms = {
 		});
 	},
 	// delFPermission
-	delFPermission: function (permissionid) {
+	delFPermission(permissionid) {
 		return $apitools.apiDelete("/filepms/v1/delfpermission", {
 			'permissionid': permissionid ? permissionid : '',
 		});
 	},
 	// updateFPermission
-	updateFPermission: function (permissionid, permission) {
+	updateFPermission(permissionid, permission) {
 		return $apitools.apiPost("/filepms/v1/updatefpermission", {
 			"permissionid": permissionid ? permissionid : '',
 			"permission": permission ? permission : '',
@@ -59,7 +59,7 @@ export const $filepms = {
 	},
 	sync: {
 		// delFPermission
-		delFPermission: function (permissionid) {
+		delFPermission(permissionid) {
 			return $apitools.apiDeleteSync("/filepms/v1/delfpermission", {
 				'permissionid': permissionid ? permissionid : '',
 			});
@@ -70,7 +70,7 @@ export const $filepms = {
 // 权限类型计算
 $filepms.$TYPE.__proto__ = {
 	// 是否包含某权限
-	sumInclude: function (sum, p) {
+	sumInclude(sum, p) {
 		sum = Number(sum); p = Number(p);
 		if (undefined == sum || sum < 0 ||
 			undefined == p || p < 0) {
@@ -79,7 +79,7 @@ $filepms.$TYPE.__proto__ = {
 		return 1 << p == (sum & (1 << p));
 	},
 	// 转换为描述文字
-	sum2Name: function (sum) {
+	sum2Name(sum) {
 		let res = [];
 		if (undefined != sum && sum > 0) {
 			for (let key in $filepms.$TYPE) {
@@ -100,7 +100,7 @@ $filepms.$TYPE.__proto__ = {
 		return res;
 	},
 	// 计算权限结果值
-	list2Sum: function (pms) {
+	list2Sum(pms) {
 		let res = -1;
 		if (pms && pms.length > 0) {
 			for (let i = 0; i < pms.length; i++) {

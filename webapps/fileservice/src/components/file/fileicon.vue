@@ -11,7 +11,7 @@
         "
       />
       <i-input
-        v-if="isEditor"
+        v-if="isEditMode"
         v-model="filename"
         style="width: calc(100% - 50px)"
         @on-blur="doSave"
@@ -33,8 +33,8 @@
 import { iconUrl } from "../../js/bizutil";
 export default {
   name: "fileicon",
-  props: ["node", "isEditor"],
-  data: function () {
+  props: ["node", "edit-mode"],
+  data() {
     return {
       iconTypes: [
         "ai",
@@ -101,53 +101,53 @@ export default {
       ],
       icon: "",
       filename: "",
+      isEditMode: false,
     };
   },
   methods: {
-    onBoxClick: function (e) {
+    onBoxClick(e) {
       if (e.srcElement.tagName.toUpperCase() == "INPUT") {
         e.stopPropagation();
       }
     },
-    onNameClick: function (e) {
+    onNameClick(e) {
       e.stopPropagation();
       this.$emit("click", this.node, e);
     },
-    doSave: function () {
-      if (this.isEditor === true) {
-        this.isEditor = false;
+    doSave() {
+      if (this.isEditMode === true) {
+        this.isEditMode = false;
         this.$emit("doRename", this.node.path, this.filename);
       }
     },
-    getFileIcon: function (path) {
+    getFileIcon(path) {
       if (!this.node.isFile) {
         return "/static/img/file_icons/folder.png";
       }
       return iconUrl(path);
     },
-    initvalue: function () {
+    initvalue() {
       this.filename = this.node.path.getName();
       this.icon = this.getFileIcon(this.filename);
     },
   },
-  created: function () {
-    let that = this;
+  created() {
     this.initvalue();
-    this.$nextTick(function () {
-      window.addEventListener("keydown", function (e) {
+    this.$nextTick(() => {
+      window.addEventListener("keydown", (e) => {
         if (!e) {
           e = window.event;
         }
         if ((e.keyCode || e.which) == 13) {
-          that.doSave();
+          this.doSave();
         }
       });
 
-      window.addEventListener("mousedown", function (e) {
+      window.addEventListener("mousedown", (e) => {
         let dom = e.target;
-        if (dom == that.$el.querySelector("input")) {
+        if (dom == this.$el.querySelector("input")) {
         } else {
-          that.doSave();
+          this.doSave();
         }
       });
     });
@@ -155,9 +155,12 @@ export default {
   watch: {
     node: {
       deep: true,
-      handler: function (newval, oldval) {
+      handler(newval, oldval) {
         this.initvalue();
       },
+    },
+    editMode(n) {
+      this.isEditMode = n;
     },
   },
 };
