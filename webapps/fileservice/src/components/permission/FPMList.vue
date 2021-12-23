@@ -293,7 +293,7 @@ export default {
         this.fPermissionEdit.isAdd = false;
         this.fPermissionEdit.userID = rows[0].userID;
         this.fPermissionEdit.path = rows[0].path;
-        this.fPermissionEdit.permission = parseInt(rows[0].Permission);
+        this.fPermissionEdit.permission = parseInt(rows[0].permission);
         this.fPermissionEdit.permissions = ((_) => {
           let permission = this.fPermissionEdit.permission;
           let res = [];

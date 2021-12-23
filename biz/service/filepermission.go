@@ -11,6 +11,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -44,6 +45,39 @@ type PermissionInfo struct {
 	UserID       string    // 用户ID
 	Permission   int64     // 权限值
 	CtTime       time.Time // 插入时间
+}
+
+// PermissionInfoDto PermissionInfo传输对象
+type PermissionInfoDto struct {
+	PermissionID string    `json:"permissionID"` // 权限路径
+	Path         string    `json:"path"`         // 文件路径
+	UserID       string    `json:"userID"`       // 用户ID
+	Permission   int64     `json:"permission"`   // 权限值
+	CtTime       time.Time `json:"ctTime"`       // 插入时间
+}
+
+// Clone Clone
+func (pi *PermissionInfo) Clone(val interface{}) error {
+	if pit, ok := val.(*PermissionInfo); ok {
+		pit.PermissionID = pi.PermissionID
+		pit.Path = pi.Path
+		pit.UserID = pi.UserID
+		pit.Permission = pi.Permission
+		pit.CtTime = pi.CtTime
+		return nil
+	}
+	return fmt.Errorf("can't support clone %T ", val)
+}
+
+// ToDto 转传输对象
+func (pi *PermissionInfo) ToDto() *PermissionInfoDto {
+	return &PermissionInfoDto{
+		PermissionID: pi.PermissionID,
+		Path:         pi.Path,
+		UserID:       pi.UserID,
+		Permission:   pi.Permission,
+		CtTime:       pi.CtTime,
+	}
 }
 
 // FilePermission 文件权限管理接口

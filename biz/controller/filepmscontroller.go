@@ -75,7 +75,11 @@ func (ctl *FilePermissionCtrl) ListFPermissions(w http.ResponseWriter, r *http.R
 		return
 	}
 	if pms, err := ctl.pms.ListFPermissions(); nil == err {
-		serviceutil.SendSuccess(w, pms)
+		pmsdto := make([]*service.PermissionInfoDto, len(pms))
+		for i := 0; i < len(pms); i++ {
+			pmsdto[i] = pms[i].ToDto()
+		}
+		serviceutil.SendSuccess(w, pmsdto)
 	} else {
 		serviceutil.SendServerError(w, err.Error())
 	}
@@ -115,7 +119,11 @@ func (ctl *FilePermissionCtrl) ListUserFPermissions(w http.ResponseWriter, r *ht
 		return
 	}
 	if pms, err := ctl.pms.ListUserFPermissions(userID); nil == err {
-		serviceutil.SendSuccess(w, pms)
+		pmsdto := make([]*service.PermissionInfoDto, len(pms))
+		for i := 0; i < len(pms); i++ {
+			pmsdto[i] = pms[i].ToDto()
+		}
+		serviceutil.SendSuccess(w, pmsdto)
 	} else {
 		serviceutil.SendServerError(w, err.Error())
 	}
