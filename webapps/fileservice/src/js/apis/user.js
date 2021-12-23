@@ -10,92 +10,104 @@ import { $utils } from "../utils";
 import { $apitools } from "./apitools";
 
 "use strict";
-export const $userApi = { sync: {} };
-
-/**
- * 登录
- * return {userID, accessKey, secretKey}
- */
-$userApi.login = (user, pwd) => {
-	return new Promise((resolve, reject) => {
-		$utils.AjaxRequest({
-			method: "POST",
-			uri: $apitools.buildAPIURL("/user/v1/checkpwd"),
-			datas: {
-				"userid": user,
-				"pwd": pwd,
-			},
-		}).do((xhr, opt) => {
-			if (xhr.readyState === 4) {
-				var res = $apitools.apiResponseFormat(xhr);
-				if (res.code === 200) {
-					resolve(res.data);
-				} else {
-					reject(res.data);
+export const $userApi = {
+	$TYPES: {
+		1: "管理员",
+		0: "普通用户",
+	},
+	// 登录
+	login(user, pwd) {
+		return new Promise((resolve, reject) => {
+			$utils.AjaxRequest({
+				method: "POST",
+				uri: $apitools.buildAPIURL("/user/v1/checkpwd"),
+				datas: {
+					"userid": user,
+					"pwd": pwd,
+				},
+			}).do((xhr, opt) => {
+				if (xhr.readyState === 4) {
+					var res = $apitools.apiResponseFormat(xhr);
+					if (res.code === 200) {
+						resolve(res.data);
+					} else {
+						reject(res.data);
+					}
 				}
-			}
+			});
 		});
-	});
+	},
+	// logout
+	logout() {
+		return $apitools.apiPost("/user/v1/logout")
+	},
+	// QueryUser
+	queryuser(userid) {
+		return $apitools.apiGet("/user/v1/queryuser", {
+			"userid": userid
+		})
+	},
+	// UpdateUserName
+	updateUserName(userid, username) {
+		return $apitools.apiPost("/user/v1/updateusername", {
+			"userid": userid,
+			"username": username,
+		})
+	},
+	// UpdateUserPwd
+	updateUserPwd(userid, userpwd) {
+		return $apitools.apiPost("/user/v1/updateuserpwd", {
+			"userid": userid,
+			"userpwd": userpwd,
+		})
+	},
+	// ListAllUsers
+	listAllUsers(userid, userpwd) {
+		return $apitools.apiGet("/user/v1/listallusers", {})
+	},
+	// AddUser
+	addUser(userid, username, userpwd) {
+		return $apitools.apiPost("/user/v1/adduser", {
+			'userid': userid,
+			'username': username,
+			'userpwd': userpwd ? userpwd : '',
+		})
+	},
+	// DelUser
+	delUser(userid) {
+		return $apitools.apiDelete("/user/v1/deluser", {
+			'userid': userid,
+		})
+	},
+	sync: {
+		// UpdateUserName
+		updateUserName(userid, username) {
+			return $apitools.apiPostSync("/user/v1/updateusername", {
+				"userid": userid,
+				"username": username,
+			})
+		},
+		// UpdateUserPwd
+		updateUserPwd(userid, userpwd) {
+			return $apitools.apiPostSync("/user/v1/updateuserpwd", {
+				"userid": userid,
+				"userpwd": userpwd,
+			})
+		},
+		// DelUser
+		delUser(userid) {
+			return $apitools.apiDeleteSync("/user/v1/deluser", {
+				'userid': userid,
+			})
+		},
+	}
 };
-// logout
-$userApi.logout = () => {
-	return $apitools.apiPost("/user/v1/logout")
-};
-// QueryUser
-$userApi.queryuser = (userid) => {
-	return $apitools.apiGet("/user/v1/queryuser", {
-		"userid": userid
-	})
-};
-// UpdateUserName
-$userApi.updateUserName = (userid, username) => {
-	return $apitools.apiPost("/user/v1/updateusername", {
-		"userid": userid,
-		"username": username,
-	})
-};
-// UpdateUserPwd
-$userApi.updateUserPwd = (userid, userpwd) => {
-	return $apitools.apiPost("/user/v1/updateuserpwd", {
-		"userid": userid,
-		"userpwd": userpwd,
-	})
-};
-// ListAllUsers
-$userApi.listAllUsers = (userid, userpwd) => {
-	return $apitools.apiGet("/user/v1/listallusers", {})
-};
-// AddUser
-$userApi.addUser = (userid, username, userpwd) => {
-	return $apitools.apiPost("/user/v1/adduser", {
-		'userid': userid,
-		'username': username,
-		'userpwd': userpwd ? userpwd : '',
-	})
-};
-// DelUser
-$userApi.delUser = (userid) => {
-	return $apitools.apiDelete("/user/v1/deluser", {
-		'userid': userid,
-	})
-};
-// UpdateUserName
-$userApi.sync.updateUserName = (userid, username) => {
-	return $apitools.apiPostSync("/user/v1/updateusername", {
-		"userid": userid,
-		"username": username,
-	})
-};
-// UpdateUserPwd
-$userApi.sync.updateUserPwd = (userid, userpwd) => {
-	return $apitools.apiPostSync("/user/v1/updateuserpwd", {
-		"userid": userid,
-		"userpwd": userpwd,
-	})
-};
-// DelUser
-$userApi.sync.delUser = (userid) => {
-	return $apitools.apiDeleteSync("/user/v1/deluser", {
-		'userid': userid,
-	})
+
+// 翻译用户类型
+$userApi.$TYPES.__proto__ = {
+	parse(userType) {
+		return $userApi.$TYPES[userType]
+			? $userApi.$TYPES[userType]
+			: "未知类型";
+	}
 };

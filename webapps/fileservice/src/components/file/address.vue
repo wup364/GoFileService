@@ -1,14 +1,14 @@
 <template>
   <breadcrumb separator=">">
     <BreadcrumbItem>
-      <a href="###" @click="address_GoToRoot()">{{ showrootname }}</a>
+      <a @click="address_GoToRoot()">{{ showrootname }}</a>
     </BreadcrumbItem>
     <BreadcrumbItem
       v-for="(item, index) in paths"
       v-bind:key="index"
       v-show="item && (index >= paths.length - 2 || index <= max)"
     >
-      <a href="###" @click="address_GoToPath(item, index)">{{ item }}</a>
+      <a @click="address_GoToPath(item, index)">{{ item }}</a>
     </BreadcrumbItem>
   </breadcrumb>
 </template>

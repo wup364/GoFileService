@@ -24,14 +24,14 @@
         </div>
         <Menu
           :active-name="currentMenu"
-          @on-select="(n) => (currentMenu = n)"
+          @on-select="onMenuSelected"
           theme="dark"
           width="auto"
         >
-          <Menu-Item name="FileList">
+          <Menu-Item name="files">
             <Icon type="ios-navigate"></Icon> <span>文件</span>
           </Menu-Item>
-          <Menu-Item name="SysSetting">
+          <Menu-Item name="settings">
             <Icon type="ios-settings"></Icon> <span>设置</span>
           </Menu-Item>
         </Menu>
@@ -40,7 +40,7 @@
         <Content
           :style="{ background: '#fff', minHeight: '220px', height: '100%' }"
         >
-          <Component v-bind:is="currentMenu"></Component>
+          <router-view />
         </Content>
       </Layout>
     </Layout>
@@ -48,20 +48,14 @@
 </template>
 
 <script>
-import FileList from "./FileList.vue";
-import SysSetting from "./SysSetting.vue";
 import { $apitools } from "../js/apis/apitools";
 import { $userApi } from "../js/apis/user";
 export default {
-  components: {
-    FileList,
-    SysSetting,
-  },
   name: "Main",
   data() {
     return {
       loading: true,
-      currentMenu: "FileList",
+      currentMenu: "files",
       currentAccount: {
         userType: "",
         userName: "",
@@ -69,6 +63,11 @@ export default {
     };
   },
   methods: {
+    onMenuSelected(n) {
+      if (this.$route.name !== n) {
+        this.$router.push({ name: n });
+      }
+    },
     onDropdownClick(name) {
       if (name == "logout") {
         $userApi
@@ -100,7 +99,13 @@ export default {
     },
   },
   created() {
+    this.currentMenu = this.$route.name;
     this.doInitCurrentAccountInfo();
+  },
+  watch: {
+    $route(to, from) {
+      this.currentMenu = to.name;
+    },
   },
 };
 </script>

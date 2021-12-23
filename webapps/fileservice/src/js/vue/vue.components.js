@@ -12,10 +12,10 @@
 import Vue from 'vue'
 /**
  *  自动适应高度, 有两种传值方式: number | function
- *  传入function(height): 通过一个回调函数来告诉调用者当前父级的高度, 再在函数里面去刷新高度, 这种方式没有警告. 如: v-minus-height="(h) => (tableHeight = h - 130)"
- *  传入number: 传入一个数值时, 程序自动改变当前元素告诉, 但控制台可能会有[Vue warring]. 虽不影响功能,但推荐使用函数方式. 如: v-minus-height="130"
+ *  传入function(height): 通过一个回调函数来告诉调用者当前父级的高度, 再在函数里面去刷新高度, 这种方式没有警告. 如: v-auto-height="(h) => (tableHeight = h - 130)"
+ *  传入number: 传入一个数值时, 程序自动改变当前元素告诉, 但控制台可能会有[Vue warring]. 虽不影响功能,但推荐使用函数方式. 如: v-auto-height="130"
  */
-Vue.directive('minus-height', {
+Vue.directive('auto-height', {
 	// 绑定钩子函数
 	bind(el, binding, vnode) { },
 	// 绑定到节点函数
@@ -24,14 +24,14 @@ Vue.directive('minus-height', {
 	update(el, binding, vnode) { },
 	// 组件更新完成
 	componentUpdated(el, binding, vnode, vnodeold) {
-		if (vnode.v_unbind_minus_height) {
-			vnode.v_unbind_minus_height();
+		if (vnode.v_unbind_watch_height) {
+			vnode.v_unbind_watch_height();
 		}
-		if (vnodeold.v_unbind_minus_height) {
-			vnodeold.v_unbind_minus_height();
+		if (vnodeold.v_unbind_watch_height) {
+			vnodeold.v_unbind_watch_height();
 		}
 		// 高度自动处理函数
-		vnode.v_minus_height = (listen) => {
+		vnode.v_watch_height = (listen) => {
 			try {
 				if (el.parentNode.clientHeight == 0) {
 					return;
@@ -45,22 +45,22 @@ Vue.directive('minus-height', {
 				}
 			} catch (e) { }
 			if (listen === true) {
-				window.addEventListener("resize", vnode.v_minus_height, false);
+				window.addEventListener("resize", vnode.v_watch_height, false);
 			}
 		};
 		// 接触高度变化监控
-		vnode.v_unbind_minus_height = () => {
-			window.removeEventListener("resize", vnode.v_minus_height, false);
-			vnode.v_minus_height = undefined;
-			vnode.v_unbind_minus_height = undefined;
+		vnode.v_unbind_watch_height = () => {
+			window.removeEventListener("resize", vnode.v_watch_height, false);
+			vnode.v_watch_height = undefined;
+			vnode.v_unbind_watch_height = undefined;
 		}
 		// 监听导读变化
-		vnode.v_minus_height(true);
+		vnode.v_watch_height(true);
 	},
 	// 解除指令 
 	unbind(el, binding, vnode) {
-		if (vnode.v_unbind_minus_height) {
-			vnode.v_unbind_minus_height();
+		if (vnode.v_unbind_watch_height) {
+			vnode.v_unbind_watch_height();
 		}
 	}
 });

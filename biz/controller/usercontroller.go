@@ -203,7 +203,7 @@ func (ctl *UserCtrl) DelUser(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := ctl.um.DelUser(userID); nil == err {
 		serviceutil.SendSuccess(w, "")
-		ctl.um.DestroyAccess(ctl.um.GetAccessKey4Request(r))
+		// ctl.um.DestroyAccess(ctl.um.GetAccessKey4Request(r))
 	} else {
 		serviceutil.SendServerError(w, err.Error())
 	}

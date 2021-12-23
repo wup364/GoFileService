@@ -85,7 +85,7 @@
       <Table
         ref="fsSelection"
         :height="tableHeight"
-        v-minus-height="(h) => (tableHeight = h - 130)"
+        v-auto-height="(h) => (tableHeight = h - 130)"
         :loading="loading"
         :columns="fsColumns"
         :data="fsData"
@@ -158,12 +158,12 @@
 </template>
 
 <script>
-import fileAddress from "./file/address.vue";
-import uploadfile from "./file/uploadfile.vue";
-import copyfile from "./file/copyfile.vue";
-import movefile from "./file/movefile.vue";
-import fileSelector from "./file/fileselector.vue";
-import fileicon from "./file/fileicon.vue";
+import fileAddress from "../components/file/address.vue";
+import uploadfile from "../components/file/uploadfile.vue";
+import copyfile from "../components/file/copyfile.vue";
+import movefile from "../components/file/movefile.vue";
+import fileSelector from "../components/file/fileselector.vue";
+import fileicon from "../components/file/fileicon.vue";
 
 import { $utils } from "../js/utils";
 import { $apitools } from "../js/apis/apitools";

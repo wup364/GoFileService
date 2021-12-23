@@ -169,7 +169,6 @@ export default {
         $fileopts
           .GetUploadUrl(file._upload.base + "/" + file.name)
           .then((url) => {
-            console.log(file);
             file._upload.updater = $utils.uploadByFormData(url, file, opts);
             file._upload.updater.start();
           })
@@ -233,7 +232,6 @@ export default {
     },
     // 停止所有拖拽动作
     stopDrop() {
-      console.log(this.$el);
       try {
         this.$el.ondrop = function (Even) {
           Even.preventDefault();
