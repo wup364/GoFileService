@@ -182,7 +182,7 @@ func (ctl *TransportCtrl) Read(w http.ResponseWriter, r *http.Request) {
 	}
 	//
 	maxSize := ctl.fm.GetFileSize(token.FilePath)
-	start, end := serviceutil.GetRequestRange(r, maxSize)
+	start, end, hasRange := serviceutil.GetRequestRange(r, maxSize)
 	//
 	if fr, err := ctl.fm.DoRead(token.FilePath, start); nil != err {
 		serviceutil.SendServerError(w, err.Error())
@@ -193,7 +193,7 @@ func (ctl *TransportCtrl) Read(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusNoContent)
 		} else {
 			w.Header().Set("Content-Length", strconv.Itoa(int(ctLength)))
-			if ctLength != maxSize {
+			if hasRange {
 				w.Header().Set("Content-Range", "bytes "+strconv.Itoa(int(start))+"-"+strconv.Itoa(int(end-1))+"/"+strconv.Itoa(int(maxSize)))
 				w.WriteHeader(http.StatusPartialContent)
 			}

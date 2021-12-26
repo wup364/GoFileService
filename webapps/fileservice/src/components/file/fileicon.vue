@@ -17,13 +17,9 @@
         @on-blur="doSave"
         @on-enter="doSave"
       ></i-input>
-      <span
-        v-else
-        style="cursor: pointer"
-        @click="onNameClick"
-        :title="filename"
-        >{{ filename }}</span
-      >
+      <a v-else style="color: #515a6e" @click="onNameClick" :title="filename">{{
+        filename
+      }}</a>
     </div>
   </div>
 </template>
@@ -117,7 +113,7 @@ export default {
     doSave() {
       if (this.isEditMode === true) {
         this.isEditMode = false;
-        this.$emit("doRename", this.node.path, this.filename);
+        this.$emit("rename", this.node.path, this.filename);
       }
     },
     getFileIcon(path) {
@@ -135,9 +131,7 @@ export default {
     this.initvalue();
     this.$nextTick(() => {
       window.addEventListener("keydown", (e) => {
-        if (!e) {
-          e = window.event;
-        }
+        e = e || window.event;
         if ((e.keyCode || e.which) == 13) {
           this.doSave();
         }

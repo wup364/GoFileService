@@ -31,7 +31,7 @@
     <Table
       ref="umgTb"
       :height="tableHeaght"
-      v-auto-height="(n) => (tableHeaght = n - 80)"
+      v-watch-height="(ch, ph) => (tableHeaght = ph - 80)"
       :loading="loading"
       :columns="columns"
       :data="calcPageDatas"

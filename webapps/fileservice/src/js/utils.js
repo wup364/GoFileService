@@ -425,6 +425,7 @@ export const $utils = {
 	areaCover(opts) {
 		let domousemove; let cancelmousemove;
 		// css
+		opts.ignoreTags = ["BUTTON", "INPUT", "A"];
 		opts.background.style.userSelect = 'none';
 		opts.background.style.webkitUserSelect = 'none';
 		// 鼠标按下开始
@@ -438,7 +439,7 @@ export const $utils = {
 				if (mouse_box) { opts.background.removeChild(mouse_box); }
 			} catch (err) { }
 			// 
-			if (e.target.tagName != "DIV") { return; }
+			if (opts.ignoreTags && opts.ignoreTags.indexOf(e.target.tagName) > -1) { return; }
 			if (e.which == 2) { return; }
 			let brect = opts.background.getBoundingClientRect ? opts.background.getBoundingClientRect() : { x: 0, y: 0 };
 			let disX = e.clientX - brect.x;

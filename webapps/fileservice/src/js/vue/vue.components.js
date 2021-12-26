@@ -11,11 +11,10 @@
 "use strict";
 import Vue from 'vue'
 /**
- *  自动适应高度, 有两种传值方式: number | function
- *  传入function(height): 通过一个回调函数来告诉调用者当前父级的高度, 再在函数里面去刷新高度, 这种方式没有警告. 如: v-auto-height="(h) => (tableHeight = h - 130)"
- *  传入number: 传入一个数值时, 程序自动改变当前元素告诉, 但控制台可能会有[Vue warring]. 虽不影响功能,但推荐使用函数方式. 如: v-auto-height="130"
+ *  监听高度变化, 入参为 function(当前节点高度, 父级节点高度)
+ *  通过一个回调函数告诉调用者当前的高度. 如: v-watch-height="(ch,ph) => (xxxHeight = ph - 130)"
  */
-Vue.directive('auto-height', {
+Vue.directive('watch-height', {
 	// 绑定钩子函数
 	bind(el, binding, vnode) { },
 	// 绑定到节点函数
@@ -30,20 +29,14 @@ Vue.directive('auto-height', {
 		if (vnodeold.v_unbind_watch_height) {
 			vnodeold.v_unbind_watch_height();
 		}
+		if (typeof binding.value !== 'function') {
+			return
+		}
 		// 高度自动处理函数
 		vnode.v_watch_height = (listen) => {
 			try {
-				if (el.parentNode.clientHeight == 0) {
-					return;
-				}
-				if (typeof binding.value === 'function') {
-					// 通过一个回调函数来告诉调用者当前父级的高度, 这种方式没有警告
-					binding.value(el.parentNode.clientHeight);
-				} else {
-					// 当绑定对象不是一个函数时, 控制台可能会有 [Vue warring], 但不影响功能. 推荐使用函数方式
-					vnode.componentInstance.height = el.parentNode.clientHeight - binding.value;
-				}
-			} catch (e) { }
+				binding.value(el.clientHeight, el.parentNode.clientHeight);
+			} catch (e) { console.error(err); }
 			if (listen === true) {
 				window.addEventListener("resize", vnode.v_watch_height, false);
 			}
@@ -64,7 +57,7 @@ Vue.directive('auto-height', {
 		}
 	}
 });
-// 
+
 /**
  * 右键菜单
  * menus = {id: {name: 'xxx', icon:'', show:true, handler: func, divided:false, }}

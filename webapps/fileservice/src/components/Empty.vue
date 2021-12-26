@@ -1,5 +1,5 @@
 <template>
-  <div class="page" ref="login-page"></div>
+  <div class="page" ref="xx-page"></div>
 </template>
 
 <script>

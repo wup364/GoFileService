@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="page">
     <div style="padding: 0px 5px 5px 5px">
       <div>
         <Button type="text" icon="md-refresh-circle" @click="loadList"
@@ -30,11 +30,12 @@
     </div>
     <Table
       ref="fpmsTb"
-      v-auto-height="(n) => {}"
       :loading="loading"
       :columns="columns"
       :data="calcPageDatas"
       :highlight-row="true"
+      :height="tableHeaght"
+      v-watch-height="(ch, ph) => (tableHeaght = ph - 80)"
       @on-row-click="onRowClick"
       @on-selection-change="onSelectionChange"
     ></Table>
@@ -134,8 +135,9 @@ export default {
   },
   data() {
     return {
-      loading: false,
       datas: [],
+      loading: false,
+      tableHeaght: 500,
       currentPageIndex: 1,
       pageSize: 60,
       shows: {

@@ -90,7 +90,7 @@ func (pmc *PermissionCheck) initPms2Memory() {
 	if nil != err {
 		logs.Panicln(err)
 	}
-	// pmc.upms = make(map[string]map[string]int64)
+	pmc.upms.Clear()
 	// 初始化数据
 	for i := 0; i < len(list); i++ {
 		var userpms *utypes.SafeMap
@@ -108,13 +108,13 @@ func (pmc *PermissionCheck) initPms2Memory() {
 		for {
 			if parent = parent[:strings.LastIndex(parent, "/")]; len(parent) == 0 {
 				if _, ok := userpms.Get("/"); !ok {
-					userpms.Put("/", service.FPM_VisibleChild)
+					userpms.Put("/", int64(service.FPM_VisibleChild))
 				}
 				break
 			}
 
 			if _, ok := userpms.Get(parent); !ok {
-				userpms.Put(parent, service.FPM_VisibleChild)
+				userpms.Put(parent, int64(service.FPM_VisibleChild))
 			}
 		}
 	}

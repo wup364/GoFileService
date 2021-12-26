@@ -1,29 +1,37 @@
 <template>
-  <div class="page" ref="main-page">
-    <div class="sys-setting" style="height: 100%; padding-top: 7px">
-      <Tabs class="usermanagetab" v-model="currentTab" style="height: 100%">
-        <TabPane name="currentAccount" label="账户信息">
-          <!-- 账户信息 -->
-          <my-info @user-changed="(n) => $set(this, 'currentAccount', n)" />
-        </TabPane>
-        <TabPane
-          v-if="currentAccount.userType === 0"
-          name="userManage"
-          label="账户管理"
-        >
-          <!-- 账户管理 -->
-          <user-list ref="userManage" style="width: 100%; height: 100%" />
-        </TabPane>
-        <TabPane
-          v-if="currentAccount.userType === 0"
-          name="fPermissionManage"
-          label="文件权限管理"
-        >
-          <!-- 权限管理 -->
-          <file-pms-list ref="fPermissionManage" />
-        </TabPane>
-      </Tabs>
-    </div>
+  <div class="sys-setting" ref="syssetting-page">
+    <Tabs
+      v-model="currentTab"
+      style="height: 100%"
+      v-watch-height="(h) => (tabHeight = h - 52)"
+    >
+      <TabPane
+        name="currentAccount"
+        label="账户信息"
+        :style="{ height: tabHeight + 'px' }"
+      >
+        <!-- 账户信息 -->
+        <my-info @user-changed="(n) => $set(this, 'currentAccount', n)" />
+      </TabPane>
+      <TabPane
+        v-if="currentAccount.userType === 0"
+        name="userManage"
+        label="账户管理"
+        :style="{ height: tabHeight + 'px' }"
+      >
+        <!-- 账户管理 -->
+        <user-list ref="userManage" style="width: 100%; height: 100%" />
+      </TabPane>
+      <TabPane
+        v-if="currentAccount.userType === 0"
+        name="fPermissionManage"
+        label="文件权限管理"
+        :style="{ height: tabHeight + 'px' }"
+      >
+        <!-- 权限管理 -->
+        <file-pms-list ref="fPermissionManage" />
+      </TabPane>
+    </Tabs>
   </div>
 </template>
 
@@ -41,6 +49,7 @@ export default {
   data() {
     let _ = this;
     return {
+      tabHeight: 500,
       currentTab: "currentAccount",
       // 账户信息
       currentAccount: {
@@ -76,7 +85,8 @@ export default {
 .ivu-table:after {
   content: none;
 }
-.sys-setting .usermanagetab .ivu-tabs-content {
-  height: calc(100% - 33px - 16px);
+.sys-setting {
+  height: 100%;
+  padding-top: 7px;
 }
 </style>

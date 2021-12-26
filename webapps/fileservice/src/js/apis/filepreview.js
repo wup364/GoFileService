@@ -35,8 +35,8 @@ export const $filepreview = {
 	},
 	// 预览
 	doPreview(path, suffix) {
-		return new Promise(function (resolve, reject) {
-			$filepreview.askToken(path).then(function (data) {
+		return new Promise((resolve, reject) => {
+			$filepreview.askToken(path).then((data) => {
 				$filepreview.openPreview(data, suffix ? suffix.toLowerCase() : path.getSuffixed(false).toLowerCase());
 				resolve();
 			}).catch(reject);
@@ -54,7 +54,7 @@ export const $filepreview = {
 		} else {
 			throw "不支持预览该文件";
 		}
-		window.open("/pages/preview?token=" + token + "&type=" + type);
+		window.open("#/preview/" + type + "?token=" + token);
 	},
 	// 是否是支持的播放类型
 	isSupport(type, suffix) {

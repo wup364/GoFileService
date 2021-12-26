@@ -1,5 +1,5 @@
 <template>
-  <div class="page" ref="main-page">
+  <div class="page" ref="filelist-page">
     <div class="file-list" ref="fslist-body" style="height: 100%">
       <div style="padding: 5px 20px 5px 5px; border-bottom: 1px solid #dcdee2">
         <div>
@@ -85,7 +85,7 @@
       <Table
         ref="fsSelection"
         :height="tableHeight"
-        v-auto-height="(h) => (tableHeight = h - 130)"
+        v-watch-height="(ch, ph) => (tableHeight = ph - 130)"
         :loading="loading"
         :columns="fsColumns"
         :data="fsData"
@@ -237,7 +237,7 @@ export default {
               },
               on: {
                 click: _.doOpen,
-                doRename: (path, name) => {
+                rename: (path, name) => {
                   _.onRenameAfter(params.index, params.row, name);
                 },
               },
@@ -722,27 +722,29 @@ export default {
         }
       }
     },
+    initAreaCover() {
+      this.$nextTick(() => {
+        $utils.areaCover({
+          background: this.$refs.fsSelection.$el,
+          coverfilter: ".ivu-table-row",
+          onCover(el) {
+            if (!el.querySelector(".ivu-checkbox-input").checked) {
+              el.querySelector(".ivu-checkbox-input").click();
+            }
+          },
+          onUnCover(el) {
+            if (el.querySelector(".ivu-checkbox-input").checked) {
+              el.querySelector(".ivu-checkbox-input").click();
+            }
+          },
+        });
+      });
+    },
   },
   mounted() {},
   created() {
-    this.goToPath(this.fsAddress.rootPath);
-    this.fsOperationButtons.upload.show = true;
-    this.$nextTick(() => {
-      $utils.areaCover({
-        background: this.$refs.fsSelection.$el,
-        coverfilter: ".ivu-table-row",
-        onCover(el) {
-          if (!el.querySelector(".ivu-checkbox-input").checked) {
-            el.querySelector(".ivu-checkbox-input").click();
-          }
-        },
-        onUnCover(el) {
-          if (el.querySelector(".ivu-checkbox-input").checked) {
-            el.querySelector(".ivu-checkbox-input").click();
-          }
-        },
-      });
-    });
+    this.initAreaCover();
+    this.goToPath(this.$route.query.path || this.fsAddress.rootPath);
   },
   watch: {
     "fsAddress.loadPath"(n, o) {
