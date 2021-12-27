@@ -16,9 +16,9 @@
 </template>
 
 <script>
-import "aplayer/dist/APlayer.min.css";
-import APlayer from "aplayer";
-import _ from "../../js/3party/jsmediatags/jsmediatags.min.js";
+import "../../js/3party/aplayer/APlayer.min.css";
+import "../../js/3party/aplayer/APlayer.min.js";
+import "../../js/3party/jsmediatags/jsmediatags.min.js";
 import { $filepreview } from "../../js/apis/filepreview";
 import { $utils } from "../../js/utils";
 export default {

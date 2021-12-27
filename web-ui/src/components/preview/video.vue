@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import DPlayer from "dplayer";
+import "../../js/3party/dplayer/DPlayer.min.js";
 import { $filepreview } from "../../js/apis/filepreview";
 export default {
   name: "",
