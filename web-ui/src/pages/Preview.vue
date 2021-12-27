@@ -70,14 +70,6 @@ export default {
     },
   },
 };
-// 加载结束
-function onLoaded(opts) {
-  if (opts) {
-    V.title = opts.title ? opts.title : V.title;
-    V.loadding = undefined == opts.loadding ? true : opts.loadding;
-    V.loaddingText = opts.loaddingText ? opts.loaddingText : V.loaddingText;
-  }
-}
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->

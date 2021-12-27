@@ -132,6 +132,9 @@ export default {
       }
     },
   },
+  beforeCreate() {
+    document.querySelector("body").setAttribute("style", "height:unset;");
+  },
   created() {
     this.initDatas(this.$route.query.token);
   },
@@ -139,11 +142,6 @@ export default {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style >
-body {
-  height: unset;
-}
-</style>
 <style scoped>
 .page {
   background: #333;
