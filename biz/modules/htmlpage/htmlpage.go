@@ -36,7 +36,7 @@ func (html *HTMLPage) Pakku() ipakku.Opts {
 		Version:     1.0,
 		Description: "静态资源",
 		OnReady: func(mctx ipakku.Loader) {
-			html.static = mctx.GetParam("htmlpage.static").ToString("./webapp")
+			html.static = mctx.GetParam("htmlpage.static").ToString("./webapps")
 		},
 		OnInit: func() {
 			html.sg = user4rpc.NewApiSignature(html.ch)
@@ -48,9 +48,9 @@ func (html *HTMLPage) Pakku() ipakku.Opts {
 // registerServlet 注册servlet
 func (html *HTMLPage) registerServlet() {
 	// 1.首页重定向
-	if err := html.sv.Any("/", PageDispatch{}.Index); err != nil {
-		logs.Panicln(err)
-	}
+	// if err := html.sv.Any("/", PageDispatch{}.Index); err != nil {
+	// 	logs.Panicln(err)
+	// }
 	// 2. 页面资源
 	if err := html.sv.SetStaticDIR("/", html.static, html.staticFilter); nil != err {
 		logs.Panicln(err)
