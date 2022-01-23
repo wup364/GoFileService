@@ -75,7 +75,7 @@ export default {
               ";base64," +
               _.arrayBufferToBase64(tags.picture.data);
           } else {
-            audio.cover = "/img/preview/default_cover.png";
+            audio.cover = "/static/img/preview/default_cover.png";
           }
           if (cb) {
             cb();
