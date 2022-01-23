@@ -31,7 +31,7 @@ export const $filepreview = {
 	},
 	// 获取预览文件的文件流
 	buildStreamURL(token, fileName) {
-		return $apitools.buildAPIURL("/filepreview/v1/stream/" + token + "?fileName=" + encodeURI(fileName ? fileName : ""));
+		return $apitools.buildAPIURL("/filepreview/v1/stream/" + token + "?fileName=" + encodeURIComponent(fileName ? fileName : ""));
 	},
 	// 预览
 	doPreview(path, suffix) {

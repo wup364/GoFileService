@@ -644,6 +644,7 @@ export default {
       this.doRefresh();
     },
     goToPath(path) {
+      this.searchText = "";
       if (this.fsAddress.loadPath != path) {
         this.fsAddress.loadPath = path;
       } else {
