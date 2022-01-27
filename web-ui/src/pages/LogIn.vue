@@ -44,6 +44,18 @@
       id="bg"
       style="width: 100%; height: 100%; position: absolute; top: 0px"
     ></div>
+    <div
+      v-if="beianInfo"
+      style="
+        position: absolute;
+        bottom: 0px;
+        text-align: center;
+        width: 100%;
+        line-height: 45px;
+      "
+    >
+      <a href="https://beian.miit.gov.cn">{{ beianInfo }}</a>
+    </div>
   </div>
 </template>
 
@@ -51,12 +63,14 @@
 <script>
 import { Victor } from "../js/3party/vector";
 import { $utils } from "../js/utils";
+import { getBeianNo } from "../js/bizutil";
 import { $apitools } from "../js/apis/apitools";
 import { $userApi } from "../js/apis/user";
 export default {
   name: "LogIn",
   data() {
     return {
+      beianInfo: "",
       loading: false,
       loginform_margin_top: 100,
       loginform_margin_left: 100,
@@ -112,8 +126,12 @@ export default {
         Victor("bg");
       });
     },
+    initBeianInfo() {
+      this.beianInfo = getBeianNo();
+    },
   },
   created() {
+    this.initBeianInfo();
     this.doAutoHeight();
     this.doRenderbg();
   },

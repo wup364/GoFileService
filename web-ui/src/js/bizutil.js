@@ -22,3 +22,16 @@ export function iconUrl(path) {
 	return "/static/img/file_icons/file.png";
 
 };
+// 获取备案信息
+export function getBeianNo() {
+	try {
+		return localStorage.getItem("beian.no");
+	} catch (error) { }
+	return "";
+};
+// 获取备案信息
+export function setBeianNo(no) {
+	try {
+		localStorage.setItem("beian.no", no ? no : "");
+	} catch (error) { }
+};

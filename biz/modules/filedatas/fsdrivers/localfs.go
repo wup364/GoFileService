@@ -149,7 +149,7 @@ func (locl *LocalDriver) GetFileSize(relativePath string) int64 {
 func (locl *LocalDriver) GetModifyTime(relativePath string) int64 {
 	if absPath, _, err := locl.getAbsolutePath(locl.mtn, relativePath); nil == err {
 		if time, err := fileutil.GetCreateTime(absPath); nil == err {
-			return time.Unix()
+			return time.UnixMilli()
 		}
 	}
 	return -1
@@ -416,11 +416,11 @@ func (locl *LocalDriver) startCacheCleaner(mtnode *ifiledatas.MountNode) {
 		var dirs []string
 		if dirs, err = fileutil.GetDirList(baseDIR); nil == err {
 			if len(dirs) > 0 {
-				nowTime := time.Now().Unix()
+				nowTime := time.Now().UnixMilli()
 				for j := 0; j < len(dirs); j++ {
 					if temp := baseDIR + "/" + dirs[j]; fileutil.IsExist(temp) {
 						if mtime, err := fileutil.GetModifyTime(temp); nil == err {
-							if nowTime-mtime.Unix() > maxTime {
+							if nowTime-mtime.UnixMilli() > maxTime {
 								fileutil.RemoveAll(temp)
 							}
 						}

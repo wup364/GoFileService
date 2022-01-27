@@ -46,8 +46,8 @@ func (n *TransportToken) AskWriteToken(src string) (*service.StreamToken, error)
 	st := &service.StreamToken{
 		FilePath: src,
 		Token:    token,
-		CTime:    time.Now().Unix(),
-		MTime:    time.Now().Unix(),
+		CTime:    time.Now().UnixMilli(),
+		MTime:    time.Now().UnixMilli(),
 		Type:     service.StreamTokenType_Write,
 	}
 	if err := n.c.Set(service.CacheLib_StreamToken, token, st); nil == err {
@@ -68,8 +68,8 @@ func (n *TransportToken) AskReadToken(src string) (*service.StreamToken, error) 
 		Token:    token,
 		FilePath: src,
 		FileSize: node.Size,
-		CTime:    time.Now().Unix(),
-		MTime:    time.Now().Unix(),
+		CTime:    time.Now().UnixMilli(),
+		MTime:    time.Now().UnixMilli(),
 		Type:     service.StreamTokenType_Read,
 	}
 	if err := n.c.Set(service.CacheLib_StreamToken, token, st); nil == err {
@@ -95,7 +95,7 @@ func (n *TransportToken) QueryToken(token string) (*service.StreamToken, error) 
 // RefreshToken RefreshToken
 func (n *TransportToken) RefreshToken(token string) (st *service.StreamToken, err error) {
 	if st, err = n.QueryToken(token); nil == err {
-		st.MTime = time.Now().Unix()
+		st.MTime = time.Now().UnixMilli()
 		if err = n.c.Set(service.CacheLib_StreamToken, token, st); nil != err {
 			logs.Errorln(err)
 		}
