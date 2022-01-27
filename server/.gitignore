@@ -1,0 +1,4 @@
+*.test
+**/conf/*
+**/.datas/**
+datas/**

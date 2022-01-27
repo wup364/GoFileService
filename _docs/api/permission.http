@@ -1,0 +1,41 @@
+@ack = c0a116c22dccced8eb6ccb397916001e
+### 登录获取会话
+POST http://127.0.0.1:8080/user/v1/checkpwd?userid=admin&pwd= HTTP/1.1 
+Content-Type: application/x-www-form-urlencoded
+
+### 列出所有数据, 无分页
+GET http://127.0.0.1:8080/filepms/v1/listfpermissions HTTP/1.1 
+Content-Type: application/x-www-form-urlencoded
+X-Ack: {{ack}}
+
+### 根据用户ID查询权限值
+POST http://127.0.0.1:8080/filepms/v1/getuserpermissionsum HTTP/1.1 
+Content-Type: application/x-www-form-urlencoded
+X-Ack: {{ack}}
+
+userid=admin&paths=["/"]
+
+### 根据用户ID查询详细信息
+GET http://127.0.0.1:8080/filepms/v1/listuserfpermissions?userid=admin HTTP/1.1 
+Content-Type: application/x-www-form-urlencoded
+X-Ack: {{ack}}
+
+
+### 添加
+POST http://127.0.0.1:8080/filepms/v1/addfpermission HTTP/1.1 
+Content-Type: application/x-www-form-urlencoded
+X-Ack: {{ack}}
+
+userid=user01&path=/&permission=14
+
+### 根据ID删除
+DELETE http://127.0.0.1:8080/filepms/v1/delfpermission?permissionid=203916bfaa760c047100858149c6e2d1 HTTP/1.1 
+Content-Type: application/x-www-form-urlencoded
+X-Ack: {{ack}}
+
+### 修改
+POST http://127.0.0.1:8080/filepms/v1/updatefpermission HTTP/1.1 
+Content-Type: application/x-www-form-urlencoded
+X-Ack: {{ack}}
+
+permissionid=203916bfaa760c047100858149c6e2d1&permission=9
