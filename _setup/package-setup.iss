@@ -23,8 +23,8 @@ Name: "chs"; MessagesFile: "package-language\Chinese.isl";
 Source: "package-info\license.txt"; DestDir: {app};
 Source: "package-source\bin\*"; Excludes:""; DestDir: "{app}\bin"; Flags: ignoreversion recursesubdirs createallsubdirs;
 Source: "..\README.md"; DestDir: "{app}";
-Source: "..\fileservice.exe"; DestDir: "{app}";
-Source: "..\webapps\*"; Excludes:""; DestDir: "{app}\webapps"; Flags: ignoreversion recursesubdirs createallsubdirs;
+Source: "..\server\fileservice.exe"; DestDir: "{app}";
+Source: "..\server\webapps\*"; Excludes:""; DestDir: "{app}\webapps"; Flags: ignoreversion recursesubdirs createallsubdirs;
 
 [Icons]
 ;¿ªÊ¼²Ëµ¥
