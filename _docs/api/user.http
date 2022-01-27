@@ -1,0 +1,48 @@
+@ack = 0f1516bfa9bf886ead0804bb7b4d7c03
+
+### 登录获取会话
+POST http://127.0.0.1:8080/user/v1/checkpwd HTTP/1.1 
+Content-Type: application/x-www-form-urlencoded
+
+userid=admin&pwd=
+
+### 添加用户
+POST http://127.0.0.1:8080/user/v1/adduser HTTP/1.1 
+Content-Type: application/x-www-form-urlencoded
+X-Ack: {{ack}}
+
+userid=user01&username=用户1&pwd=
+
+### 查询单个用户
+GET http://127.0.0.1:8080/user/v1/queryuser?userid=user01 HTTP/1.1 
+Content-Type: application/x-www-form-urlencoded
+X-Ack: {{ack}}
+
+### 查询所有用户-没分页
+GET http://127.0.0.1:8080/user/v1/listallusers HTTP/1.1 
+Content-Type: application/x-www-form-urlencoded
+X-Ack: {{ack}}
+
+### 更新用户名字
+POST http://127.0.0.1:8080/user/v1/updateusername HTTP/1.1 
+Content-Type: application/x-www-form-urlencoded
+X-Ack: {{ack}}
+
+userid=user01&username=用户01
+
+### 更新用户密码
+POST http://127.0.0.1:8080/user/v1/updateuserpwd HTTP/1.1 
+Content-Type: application/x-www-form-urlencoded
+X-Ack: {{ack}}
+
+userid=user01&userpwd=000
+
+### 注销登录会话
+POST http://127.0.0.1:8080/user/v1/logout HTTP/1.1 
+Content-Type: application/x-www-form-urlencoded
+X-Ack: {{ack}}
+
+### 删除用户
+DELETE http://127.0.0.1:8080/user/v1/deluser?userid=user01 HTTP/1.1 
+Content-Type: application/x-www-form-urlencoded
+X-Ack: {{ack}}
