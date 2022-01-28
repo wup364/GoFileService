@@ -556,8 +556,12 @@ export default {
           .then((data) => {
             this.$nextTick(() => {
               let download = document.createElement("iframe");
+              download.style.display = "none";
               download.src = data;
               document.body.appendChild(download);
+              setTimeout(() => {
+                document.body.removeChild(download);
+              }, 60000);
             });
           })
           .catch((err) => {

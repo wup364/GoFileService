@@ -113,7 +113,7 @@ func (ctl *TransportCtrl) Put(w http.ResponseWriter, r *http.Request) {
 	}
 	token, err := ctl.getSteamToken(strutil.GetPathName(r.URL.Path))
 	if nil != err || nil == token {
-		serviceutil.SendServerError(w, err.Error())
+		serviceutil.SendBadRequest(w, err.Error())
 		return
 	}
 	if len(token.FilePath) == 0 {
@@ -163,7 +163,7 @@ func (ctl *TransportCtrl) Read(w http.ResponseWriter, r *http.Request) {
 	qToken := strutil.GetPathName(r.URL.Path)
 	token, err := ctl.getSteamToken(qToken)
 	if nil != err || nil == token {
-		serviceutil.SendServerError(w, err.Error())
+		serviceutil.SendBadRequest(w, err.Error())
 		return
 	} else {
 		// 校验
