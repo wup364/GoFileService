@@ -1,5 +1,5 @@
 <template>
-  <div class="page" ref="pw-audio-page">
+  <div v-watch-height="watchHeight" class="page" ref="pw-audio-page">
     <div
       id="bg"
       style="
@@ -11,22 +11,65 @@
         height: 100%;
       "
     ></div>
-    <div ref="aplayer" id="aplayer"></div>
+    <aplayer
+      v-if="currentMusic"
+      :repeat="repeatMethod"
+      :list="musicList"
+      :music="currentMusic"
+      :list-max-height="listMaxHeight"
+      v-on:update:music="onMusicUpdate"
+      ref="aplayer"
+      id="aplayer"
+    />
   </div>
 </template>
 
 <script>
-import "../../js/3party/aplayer/APlayer.min.css";
-import "../../js/3party/aplayer/APlayer.min.js";
 import "../../js/3party/jsmediatags/jsmediatags.min.js";
 import { $filepreview } from "../../js/apis/filepreview";
 import { $utils } from "../../js/utils";
+import Aplayer from "vue-aplayer";
+Aplayer.disableVersionBadge = true;
+
 export default {
+  components: {
+    Aplayer,
+  },
   name: "pw-audio",
   data() {
-    return {};
+    return {
+      musicList: [],
+      currentMusic: undefined,
+      repeatMethod: "list", // music|list|none
+      listMaxHeight: "100%",
+    };
   },
   methods: {
+    //
+    watchHeight(ch, ph) {
+      try {
+        this.listMaxHeight =
+          ph -
+          document.getElementsByClassName("aplayer-body")[0].clientHeight +
+          "px";
+      } catch (error) {
+        this.listMaxHeight = ph - 66 + "px";
+      }
+    },
+    // 切换播放列表
+    onMusicUpdate(music) {
+      if (!music._cover_) {
+        this.getCover(music, () => {
+          music._cover_ = true;
+          document.getElementById("bg").style.backgroundImage =
+            "url('" + music.pic + "')";
+        });
+      } else if (music.pic) {
+        document.getElementById("bg").style.backgroundImage =
+          "url('" + music.pic + "')";
+      }
+    },
+
     // 加载数据列表
     buildMusicList(token, datas) {
       let res = {
@@ -49,10 +92,11 @@ export default {
               res.cindex = res.list.length;
             }
             res.list.push({
-              name: node.path.getName(false),
+              title: node.path.getName(false),
               artist: $utils.formatSize(node.size),
-              url: $filepreview.buildStreamURL(token, node.path.getName()),
-              cover: "/static/img/preview/default_cover.png",
+              src: $filepreview.buildStreamURL(token, node.path.getName()),
+              pic: "/static/img/preview/default_cover.png",
+              lrc: "",
             });
           }
         }
@@ -62,27 +106,24 @@ export default {
     // 获取封面
     getCover(audio, cb) {
       let _ = this;
-      jsmediatags.read(audio.url, {
+      jsmediatags.read(audio.src, {
         onSuccess(datas) {
-          // console.log(datas, datas.tags);
           let tags = datas.tags;
-
           audio.artist = tags.artist ? tags.artist : "";
           if (tags.picture) {
-            audio.cover =
+            audio.pic =
               "data:" +
               tags.picture.format +
               ";base64," +
               _.arrayBufferToBase64(tags.picture.data);
           } else {
-            audio.cover = "/static/img/preview/default_cover.png";
+            audio.pic = "/static/img/preview/default_cover.png";
           }
           if (cb) {
             cb();
           }
         },
         onError(err) {
-          // console.log(err);
           if (cb) {
             cb(err);
           }
@@ -99,43 +140,6 @@ export default {
       }
       return window.btoa(binary);
     },
-    //
-    initAPlayer(mlist) {
-      let _ = this;
-      let ap = new APlayer({
-        audio: mlist,
-        listMaxHeight: 0,
-        container: document.getElementById("aplayer") || _.$refs["aplayer"].$el,
-      });
-      ap.on("listshow", (e) => {
-        document.getElementById("aplayer").style.height = "100%";
-      });
-      ap.on("listhide", (e) => {
-        document.getElementById("aplayer").style.height = "66px";
-      });
-      ap.on("listswitch", (e) => {
-        let mitem = mlist[e.index];
-        mitem.artist = undefined;
-        this.$emit("on-loading", { title: mitem.name, loadding: false });
-        if (!mitem["_cover_"]) {
-          this.getCover(mitem, () => {
-            mitem["_cover_"] = true;
-            ap.template.pic.style.backgroundImage = mitem.cover
-              ? "url('" + mitem.cover + "')"
-              : "";
-            ap.template.author.innerHTML = mitem.artist ? mitem.artist : "";
-            document.getElementById("bg").style.backgroundImage =
-              "url('" + mitem.cover + "')";
-          });
-        } else {
-          if (mitem.cover) {
-            document.getElementById("bg").style.backgroundImage =
-              "url('" + mitem.cover + "')";
-          }
-        }
-      });
-      return ap;
-    },
     initDatas(token) {
       try {
         $filepreview
@@ -149,10 +153,14 @@ export default {
             });
             // 初始胡aplayer
             let mlist = this.buildMusicList(token, datas);
-            let ap = this.initAPlayer(mlist.list);
             if (mlist.list.length > 0) {
-              ap.list.switch(mlist.cindex);
-              ap.play();
+              this.musicList = mlist.list;
+              this.currentMusic = mlist.list[mlist.cindex];
+              this.onMusicUpdate(this.currentMusic);
+              this.$nextTick(() => {
+                let ap = this.$refs.aplayer;
+                ap.play();
+              });
             }
             // 刷新顶部title
             this.$emit("on-loading", {
@@ -179,6 +187,7 @@ export default {
   created() {
     this.initDatas(this.$route.query.token);
   },
+  watch: {},
 };
 </script>
 
@@ -192,13 +201,6 @@ body {
 #aplayer {
   max-width: 1000px;
   margin: auto;
-  height: 100%;
-  opacity: 0.8;
+  opacity: 0.7;
 }
 </style >
-<style >
-#aplayer .aplayer-list {
-  overflow-y: auto !important;
-  height: calc(100% - 70px) !important;
-}
-</style>
