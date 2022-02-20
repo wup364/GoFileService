@@ -62,6 +62,17 @@ func (driver PakkuFsDriver) InstanceDriver(dirMount ifiledatas.DIRMount, mtnode 
 			},
 		}),
 	}
+	// endpoint
+	if val, ok := mtnode.Props["endpoints"]; ok {
+		if val, ok := val.(map[string]interface{}); ok {
+			endpoints := make(map[string]string)
+			for k, v := range val {
+				endpoints[k] = v.(string)
+			}
+			instance.sdk.SetDataNodeDNS(endpoints)
+			logs.Infoln("EndPoints: ", endpoints)
+		}
+	}
 	return instance, nil
 }
 
@@ -365,7 +376,7 @@ func (driver *PakkuFsDriver) DoAskAccessToken(src string, tokenType ifiledatas.A
 			return nil, fileutil.PathNotExist("AskAccessToken", src)
 		}
 		if token, err := driver.sdk.DoAskReadToken(absSrc); nil == err {
-			if url, err := driver.sdk.GetReadStreamURL(token.NodeNo, token.Token); nil == err {
+			if url, err := driver.sdk.GetReadStreamURL(token.NodeNo, token.Token, token.EndPoint); nil == err {
 				return &ifiledatas.AccessToken{
 					Token:    token.Token,
 					CTime:    token.CTime,
@@ -379,7 +390,7 @@ func (driver *PakkuFsDriver) DoAskAccessToken(src string, tokenType ifiledatas.A
 		}
 	} else if tokenType == ifiledatas.AccessTokenType_Write {
 		if token, err := driver.sdk.DoAskWriteToken(absSrc); nil == err {
-			if url, err := driver.sdk.GetWriteStreamURL(token.NodeNo, token.Token); nil == err {
+			if url, err := driver.sdk.GetWriteStreamURL(token.NodeNo, token.Token, token.EndPoint); nil == err {
 				return &ifiledatas.AccessToken{
 					Token:    token.Token,
 					CTime:    token.CTime,

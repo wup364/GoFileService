@@ -13,12 +13,13 @@ package ifiledatas
 
 // MountNode 挂载节点信息
 type MountNode struct {
-	Driver FileDriver // 启动实例
-	Path   string     // 挂载路径-虚拟路径
-	Type   string     // 挂载类型
-	Addr   string     // 实际挂载路径
-	Passwd string     // 部分连接可能有密码
-	Depth  int        // 深度
+	Depth  int                    // 深度
+	Path   string                 // 挂载路径-虚拟路径
+	Type   string                 // 挂载类型
+	Addr   string                 // 实际挂载路径
+	Passwd string                 // 部分连接可能有密码
+	Props  map[string]interface{} // 其他部分拓展数据
+	Driver FileDriver             // 驱动实例
 }
 
 // DIRMount 虚拟路径挂载管理

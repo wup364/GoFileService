@@ -24,6 +24,7 @@ const (
 	keyMountType   string = "type"   // 配置文件-挂载类别
 	keymountAddr   string = "addr"   // 配置文件-挂载地址
 	keymountpasswd string = "passwd" // 配置文件-挂载密码
+	keymountprops  string = "props"  // 配置文件-拓展属性
 )
 
 // DIRMount 挂载管理器
@@ -59,12 +60,18 @@ func (mount *DIRMount) LoadAllMount(mnodes map[string]interface{}) ifiledatas.DI
 		confVal := val.(map[string]interface{})
 		mtnode := ifiledatas.MountNode{
 			Path:  key,
+			Props: make(map[string]interface{}),
 			Type:  confVal[keyMountType].(string),
 			Addr:  confVal[keymountAddr].(string),
 			Depth: 0,
 		}
 		if val, ok := confVal[keymountpasswd]; ok {
 			mtnode.Passwd = val.(string)
+		}
+		if val, ok := confVal[keymountprops]; ok {
+			if val, ok := val.(map[string]interface{}); ok {
+				mtnode.Props = val
+			}
 		}
 		nodes[count] = mount.parseMountNode(&mtnode)
 		count++

@@ -503,7 +503,7 @@ func (locl *LocalDriver) clearMountAddr(src, dst *ifiledatas.MountNode, err erro
 
 // startCacheCleaner 启动'temp文件'维护线程
 func (locl *LocalDriver) startCacheCleaner(mtnode *ifiledatas.MountNode) {
-	maxTime := int64(1 * 24 * 60 * 60)
+	maxTime := int64(1 * 24 * 60 * 60 * 1000)
 	baseDIR := filepath.Clean(mtnode.Addr + "/" + tempDir)
 	logs.Infof("startCacheCleaner dir=%s, exp=%d\r\n", baseDIR, maxTime)
 	for {
