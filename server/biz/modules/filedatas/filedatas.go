@@ -52,20 +52,20 @@ func (fns *FileDatas) Pakku() ipakku.Opts {
 			if len(mount) == 0 {
 				logs.Panicln("Not find mount config, in config key: " + CONFKEY_MOUNT)
 			}
-			fns.mt = &dirmount.DIRMount{}
+			fns.mt = new(dirmount.DIRMount)
 			// 注册支持的驱动
-			fns.mt.RegisterFileDriver(fsdrivers.LocalDriver{}).LoadAllMount(mount)
+			fns.mt.RegisterFileDriver(new(fsdrivers.LocalDriver), new(fsdrivers.PakkuFsDriver)).LoadAllMount(mount)
 		},
 	}
 }
 
 // getPathDriver getPathDriver
 func (fns *FileDatas) getPathDriver(relativePath string) (ifiledatas.FileDriver, error) {
-	relativePath, err := checkPathSafety(relativePath)
-	if nil != err {
+	if relativePath, err := checkPathSafety(relativePath); nil != err {
 		return nil, err
+	} else {
+		return fns.mt.GetFileDriver(relativePath), nil
 	}
-	return fns.mt.GetFileDriver(relativePath), nil
 }
 
 // DoRename DoRename
@@ -176,12 +176,12 @@ func (fns *FileDatas) GetFileSize(relativePath string) int64 {
 }
 
 // GetDirList 获取文件夹列表
-func (fns *FileDatas) GetDirList(relativePath string) []string {
+func (fns *FileDatas) GetDirList(relativePath string, limit int, offset int) []string {
 	fs, err := fns.getPathDriver(relativePath)
 	if nil != err {
 		return make([]string, 0)
 	}
-	return fs.GetDirList(relativePath)
+	return fs.GetDirList(relativePath, limit, offset)
 }
 
 // GetNode 获取文件的基本信息
@@ -190,93 +190,143 @@ func (fns *FileDatas) GetNode(relativePath string) *service.FNode {
 	if nil != err {
 		return nil
 	}
-	isFile := fs.IsFile(relativePath)
-	isDir := fs.IsDir(relativePath)
-	if !isFile && !isDir {
-		return nil
+	if node := fs.GetNode(relativePath); nil != node {
+		return &service.FNode{
+			Path:   node.Path,
+			IsDir:  node.IsDir,
+			IsFile: node.IsFile,
+			Mtime:  node.Mtime,
+			Size:   node.Size,
+		}
 	}
-	return &service.FNode{
-		Mtime:  fs.GetModifyTime(relativePath),
-		IsFile: isFile, IsDir: isDir, Path: relativePath,
-		Size: fs.GetFileSize(relativePath),
+	return nil
+}
+
+// GetNodes 批量获取文件基本信息
+func (fns *FileDatas) GetNodes(src []string, ignoreNotIsExist bool) (res []service.FNode, err error) {
+	// 分组
+	if group, err := fns.groupPathByDriver(src); nil == err && len(group) > 0 {
+		merge := make([]ifiledatas.Node, 0)
+		for _, paths := range group {
+			if fs, err := fns.getPathDriver(paths[0]); nil == err {
+				if nodes, err := fs.GetNodes(paths, ignoreNotIsExist); nil != err {
+					return res, err
+				} else if len(nodes) > 0 {
+					merge = append(merge, nodes...)
+				}
+			} else {
+				return res, err
+			}
+		}
+		// dto
+		res = make([]service.FNode, len(merge))
+		for i := 0; i < len(merge); i++ {
+			res[i] = service.FNode{
+				Path:   merge[i].Path,
+				IsDir:  merge[i].IsDir,
+				IsFile: merge[i].IsFile,
+				Mtime:  merge[i].Mtime,
+				Size:   merge[i].Size,
+			}
+		}
+	} else {
+		return res, err
 	}
+	return res, err
 }
 
 // GetDirNodeList 获取文件夹下文件的基本信息
-func (fns *FileDatas) GetDirNodeList(relativePath string) ([]service.FNode, error) {
-	fs, err := fns.getPathDriver(relativePath)
-	if nil != err {
-		return make([]service.FNode, 0), err
-	}
-	ls := fs.GetDirList(relativePath)
-	lenLS := len(ls)
-
-	files := make([]service.FNode, 0)
-	folders := make([]service.FNode, 0)
-	if err == nil && lenLS > 0 {
-		for i := 0; i < len(ls); i++ {
-			childPath := "/" + ls[i]
-			if relativePath != "/" {
-				childPath = relativePath + childPath
-			}
-			// fmt.Println("childPath: ", childPath)
-			isFile := fs.IsFile(childPath)
-			isDir := fs.IsDir(childPath)
-			fbi := service.FNode{
-				Path:   childPath,
-				Mtime:  fs.GetModifyTime(childPath),
-				IsFile: isFile,
-				IsDir:  isDir,
-				Size:   fs.GetFileSize(childPath),
-			}
-			if isFile {
-				files = append(files, fbi)
-			} else if isDir {
-				folders = append(folders, fbi)
-			}
-			// fmt.Println(f_bi[i])
-		}
-	}
-	mLS := fns.mt.ListChildMount(relativePath)
-	if len(mLS) > 0 {
-		for i := 0; i < len(mLS); i++ {
-			existedIndex := -1
-			for j := 0; j < len(ls); j++ {
-				if ls[j] == mLS[i] {
-					existedIndex = j
+func (fns *FileDatas) GetDirNodeList(relativePath string, limit int, offset int) (res []service.FNode, err error) {
+	if fs, err := fns.getPathDriver(relativePath); nil != err {
+		return res, err
+	} else {
+		if nodes, err := fs.GetDirNodeList(relativePath, limit, offset); nil != err {
+			return res, err
+		} else {
+			// 挂载目录
+			if mLS := fns.mt.ListChildMount(relativePath); len(mLS) > 0 {
+				for i := 0; i < len(mLS); i++ {
+					existedIndex := -1
+					for j := 0; j < len(nodes); j++ {
+						if nodes[j].Path == mLS[i] {
+							existedIndex = j
+							break
+						}
+					}
+					//
+					childPath := mLS[i]
+					if relativePath != "/" {
+						childPath = relativePath + childPath
+					}
+					mtfs := fns.mt.GetFileDriver(childPath)
+					if node := mtfs.GetNode(childPath); nil != node {
+						if existedIndex == -1 {
+							nodes = append(nodes, *node)
+						} else {
+							nodes[existedIndex] = *node
+						}
+					}
 				}
 			}
-			if existedIndex == -1 {
-				childPath := mLS[i]
-				if relativePath != "/" {
-					childPath = relativePath + childPath
+			// 分组 + 合并
+			if len(nodes) > 0 {
+				files := make([]service.FNode, 0)
+				folders := make([]service.FNode, 0)
+				for i := 0; i < len(nodes); i++ {
+					node := service.FNode{
+						Path:   nodes[i].Path,
+						IsDir:  nodes[i].IsDir,
+						IsFile: nodes[i].IsFile,
+						Mtime:  nodes[i].Mtime,
+						Size:   nodes[i].Size,
+					}
+					if node.IsFile {
+						files = append(files, node)
+					} else {
+						folders = append(folders, node)
+					}
 				}
-				mtfs := fns.mt.GetFileDriver(childPath)
-				folders = append(folders, service.FNode{
-					Path:   childPath,
-					Mtime:  mtfs.GetModifyTime(childPath),
-					IsFile: false,
-					IsDir:  true,
-					Size:   0,
-				})
+				// 合并
+				res = append(res, folders...)
+				res = append(res, files...)
 			}
-		}
-	}
-	// 把文件夹排到前面去
-	lenFiles := len(files)
-	lenFolders := len(folders)
-	res := make([]service.FNode, lenFiles+lenFolders)
-	if lenFolders > 0 {
-		for i := 0; i < lenFolders; i++ {
-			res[i] = folders[i]
-		}
-	}
-	if lenFiles > 0 {
-		for i := 0; i < lenFiles; i++ {
-			res[i+lenFolders] = files[i]
 		}
 	}
 	return res, err
+}
+
+// DoAskAccessToken 获取一个访问token
+func (fns *FileDatas) DoAskAccessToken(src string, tokenType service.AccessTokenType) (*service.AccessToken, error) {
+	if fs, err := fns.getPathDriver(src); nil != err {
+		return nil, err
+	} else {
+		if token, err := fs.DoAskAccessToken(src, ifiledatas.AccessTokenType(tokenType)); nil == err {
+			return &service.AccessToken{
+				Token:    token.Token,
+				CTime:    token.CTime,
+				TokenURL: token.TokenURL,
+			}, nil
+		} else {
+			return nil, err
+		}
+	}
+}
+
+// groupPathByDriver 根据驱动类型分类
+func (fns *FileDatas) groupPathByDriver(srcList []string) (map[string][]string, error) {
+	result := make(map[string][]string)
+	for i := 0; i < len(srcList); i++ {
+		if relativePath, err := checkPathSafety(srcList[i]); nil != err {
+			return nil, err
+		} else if mnode := fns.mt.GetMountNode(relativePath); nil != mnode {
+			if val, ok := result[mnode.Type]; ok {
+				result[mnode.Type] = append(val, relativePath)
+			} else {
+				result[mnode.Type] = []string{relativePath}
+			}
+		}
+	}
+	return result, nil
 }
 
 // checkPathSafety 路径合规检查, 避免 ../ ./之类的路径

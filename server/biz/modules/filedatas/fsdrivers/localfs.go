@@ -41,42 +41,39 @@ func (locl LocalDriver) GetDriverType() string {
 	return "LOCAL"
 }
 
-// OnDriverRegister 当驱动注册时调用
-func (locl LocalDriver) OnDriverRegister(mtnode *ifiledatas.MountNode) error {
+// InstanceDriver 当驱动实例化时调用
+func (locl LocalDriver) InstanceDriver(dirMount ifiledatas.DIRMount, mtnode *ifiledatas.MountNode) (ifiledatas.FileDriver, error) {
 	// 格式化 mtnode.Addr
 	if !filepath.IsAbs(mtnode.Addr) {
-		path, err := filepath.Abs(mtnode.Addr)
-		if nil != err {
-			return err
+		if path, err := filepath.Abs(mtnode.Addr); nil != err {
+			return nil, err
+		} else {
+			mtnode.Addr = path
 		}
-		mtnode.Addr = path
 	}
 	mtnode.Addr = filepath.Clean(mtnode.Addr)
 	// 初始化必要的文件夹
 	if loclTemp := filepath.Clean(mtnode.Addr + "/" + tempDir); !fileutil.IsDir(loclTemp) {
 		if err := fileutil.MkdirAll(loclTemp); nil != err {
-			return errors.New("Create Folder Failed, Path: " + loclTemp + ", " + err.Error())
+			return nil, errors.New("Create Folder Failed, Path: " + loclTemp + ", " + err.Error())
 		}
 	}
 	// 初始化'删除缓存'文件夹
 	if loclDeleting := filepath.Clean(mtnode.Addr + "/" + deletingDir); !fileutil.IsDir(loclDeleting) {
 		if err := fileutil.MkdirAll(loclDeleting); nil != err {
-			return errors.New("Create Folder Failed, Path: " + loclDeleting + ", " + err.Error())
+			return nil, errors.New("Create Folder Failed, Path: " + loclDeleting + ", " + err.Error())
 		}
 	}
+	// 实例化
+	instance := &LocalDriver{
+		mtn: mtnode,
+		mtm: dirMount,
+	}
 	// 启动'temp文件'维护线程
-	go locl.startCacheCleaner(mtnode)
+	go instance.startCacheCleaner(mtnode)
 	// 启动'删除缓存'维护线程
-	go locl.startDeleteCacheCleaner(mtnode)
-	return nil
-}
-
-// InstanceDriver 当驱动实例化时调用
-func (locl LocalDriver) InstanceDriver(dirMount ifiledatas.DIRMount, mtnode *ifiledatas.MountNode) ifiledatas.FileDriver {
-	res := &locl
-	res.mtn = mtnode
-	res.mtm = dirMount
-	return res
+	go instance.startDeleteCacheCleaner(mtnode)
+	return instance, nil
 }
 
 // IsExist 文件是否存在
@@ -109,8 +106,73 @@ func (locl *LocalDriver) IsFile(relativePath string) bool {
 	return fileutil.IsFile(absPath)
 }
 
+// GetNode GetNode
+func (locl *LocalDriver) GetNode(src string) *ifiledatas.Node {
+	absPath, _, err := locl.getAbsolutePath(locl.mtn, src)
+	if nil != err {
+		logs.Errorln(err)
+		return nil
+	}
+	//
+	node := ifiledatas.Node{
+		Path:   strutil.Parse2UnixPath(src),
+		IsFile: fileutil.IsFile(absPath),
+		IsDir:  fileutil.IsDir(absPath),
+	}
+	if !node.IsFile && !node.IsDir {
+		return nil
+	}
+	if t, err := fileutil.GetModifyTime(absPath); nil == err {
+		node.Mtime = t.UnixMilli()
+	}
+	if node.IsFile {
+		if s, err := fileutil.GetFileSize(absPath); nil == err {
+			node.Size = s
+		}
+	}
+	return &node
+}
+
+// GetNodes GetNodes
+func (locl *LocalDriver) GetNodes(src []string, ignoreNotIsExist bool) ([]ifiledatas.Node, error) {
+	if len(src) == 0 {
+		return nil, nil
+	}
+	if ignoreNotIsExist {
+		res := make([]ifiledatas.Node, 0)
+		for i := 0; i < len(src); i++ {
+			if node := locl.GetNode(src[i]); nil != node {
+				res = append(res, *locl.GetNode(src[i]))
+			}
+		}
+		return res, nil
+	} else {
+		res := make([]ifiledatas.Node, len(src))
+		for i := 0; i < len(src); i++ {
+			if node := locl.GetNode(src[i]); nil != node {
+				res[i] = *locl.GetNode(src[i])
+			} else {
+				return nil, fileutil.PathNotExist("GetNodes", src[i])
+			}
+		}
+		return res, nil
+	}
+}
+
+// GetDirNodeList 获取node列表
+func (locl *LocalDriver) GetDirNodeList(src string, limit, offset int) ([]ifiledatas.Node, error) {
+	dirNames := locl.GetDirList(src, limit, offset)
+	if len(dirNames) == 0 {
+		return nil, nil
+	}
+	for i := 0; i < len(dirNames); i++ {
+		dirNames[i] = strutil.Parse2UnixPath(src + "/" + dirNames[i])
+	}
+	return locl.GetNodes(dirNames, true)
+}
+
 // GetDirList 获取路径列表, 返回相对路径
-func (locl *LocalDriver) GetDirList(relativePath string) []string {
+func (locl *LocalDriver) GetDirList(relativePath string, limit, offset int) []string {
 	if absPath, mRelativePath, err := locl.getAbsolutePath(locl.mtn, relativePath); err == nil {
 		if ls, err := fileutil.GetDirList(absPath); nil == err {
 			// 如果是挂载目录根目录, 需要处理 缓存目录
@@ -123,7 +185,29 @@ func (locl *LocalDriver) GetDirList(relativePath string) []string {
 					}
 					res = append(res, ls[i])
 				}
-				return res
+				ls = res
+			}
+			// limit offset
+			if count := len(ls); count > 0 && limit > 0 && offset > -1 {
+				if offset < count {
+					if limit < count {
+						limit = count
+					}
+					index := 0
+					ls = make([]string, limit)
+					for i := offset; i < count; i++ {
+						ls[index] = ls[i]
+						index++
+						if index == limit {
+							break
+						}
+					}
+					if index < limit {
+						ls = ls[:index]
+					}
+				} else {
+					ls = make([]string, 0)
+				}
 			}
 			return ls
 		}
@@ -319,6 +403,17 @@ func (locl *LocalDriver) DoWrite(relativePath string, ioReader io.Reader) error 
 		}
 	}
 	return locl.wrapError(relativePath, "", cpErr)
+}
+
+// DoAskAccessToken 申请访问Token
+func (locl *LocalDriver) DoAskAccessToken(src string, tokenType ifiledatas.AccessTokenType) (*ifiledatas.AccessToken, error) {
+	if !locl.IsExist(src) {
+		return nil, fileutil.PathNotExist("AskAccessToken", src)
+	}
+	return &ifiledatas.AccessToken{
+		Token: strutil.GetUUID(),
+		CTime: time.Now().UnixMilli(),
+	}, nil
 }
 
 // getAbsolutePath (mnode, 虚拟路径)(绝对位置, 挂载位置, 错误)处理路径拼接

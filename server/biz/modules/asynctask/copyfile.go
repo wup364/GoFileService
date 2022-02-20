@@ -91,8 +91,8 @@ func (task *CopyFile) Init(mctx ipakku.Loader) service.AsyncTaskExecI {
 
 // Execute 动作执行, 返回一个tooken
 func (task *CopyFile) Execute(r *http.Request) (string, error) {
-	qSrcPath := r.FormValue("srcPath")
-	qDstPath := r.FormValue("dstPath")
+	qSrcPath := strutil.Parse2UnixPath(r.FormValue("srcPath"))
+	qDstPath := strutil.Parse2UnixPath(r.FormValue("dstPath"))
 	qReplace := strutil.String2Bool(r.FormValue("replace"))
 	qIgnore := strutil.String2Bool(r.FormValue("ignore"))
 
@@ -267,7 +267,7 @@ func (task *CopyFile) doCopy(src, dst string, replace, ignore bool, walk func(s_
 			}
 		}
 	} else if task.fm.IsDir(src) {
-		if names := task.fm.GetDirList(src); len(names) > 0 {
+		if names := task.fm.GetDirList(src, -1, -1); len(names) > 0 {
 			for i := 0; i < len(names); i++ {
 				child := src + "/" + names[i]
 				childdst := dst + "/" + names[i]

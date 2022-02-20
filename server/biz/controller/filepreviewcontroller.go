@@ -98,13 +98,13 @@ func (ctl *Preview) SameDirFiles(w http.ResponseWriter, r *http.Request) {
 		} else if !ctl.checkPermision(ctl.getUserID4Request(r), token.FilePath, service.FPM_Read) {
 			serviceutil.SendBadRequest(w, service.ErrorPermissionInsufficient.Error())
 		} else {
-			if list, err := ctl.fm.GetDirNodeList(prentPath); err != nil {
+			if list, err := ctl.fm.GetDirNodeList(prentPath, -1, -1); err != nil {
 				serviceutil.SendServerError(w, err.Error())
 			} else {
 				res := make([]service.FNodeDto, 0)
 				if len(list) > 0 {
 					for i := 0; i < len(list); i++ {
-						res = append(res, *list[i].ToDto())
+						res = append(res, list[i].ToDto())
 					}
 				}
 				//

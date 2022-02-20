@@ -21,8 +21,9 @@ import (
 
 // 常量
 const (
-	keyMountType string = "type" // 配置文件-挂载类别
-	keymountAddr string = "addr" // 配置文件-挂载地址
+	keyMountType   string = "type"   // 配置文件-挂载类别
+	keymountAddr   string = "addr"   // 配置文件-挂载地址
+	keymountpasswd string = "passwd" // 配置文件-挂载密码
 )
 
 // DIRMount 挂载管理器
@@ -47,21 +48,25 @@ func (mount *DIRMount) RegisterFileDriver(drivers ...ifiledatas.DIRMountRegister
 // LoadAllMount 初始化挂载节点 mnodes: {'/':{type:'local', addr:'./datas'}}
 func (mount *DIRMount) LoadAllMount(mnodes map[string]interface{}) ifiledatas.DIRMount {
 	if len(mnodes) == 0 {
-		panic("mnodes is nil")
+		logs.Panicln("mnodes is nil")
 	}
 	if nil == mount.drivers || len(mount.drivers) == 0 {
-		panic("drivers is nil")
+		logs.Panicln("drivers is nil")
 	}
 	nodes := make([]*ifiledatas.MountNode, len(mnodes))
 	count := 0
 	for key, val := range mnodes {
-		newVal := val.(map[string]interface{})
-		nodes[count] = mount.parseMountNode(&ifiledatas.MountNode{
+		confVal := val.(map[string]interface{})
+		mtnode := ifiledatas.MountNode{
 			Path:  key,
-			Type:  newVal[keyMountType].(string),
-			Addr:  newVal[keymountAddr].(string),
+			Type:  confVal[keyMountType].(string),
+			Addr:  confVal[keymountAddr].(string),
 			Depth: 0,
-		})
+		}
+		if val, ok := confVal[keymountpasswd]; ok {
+			mtnode.Passwd = val.(string)
+		}
+		nodes[count] = mount.parseMountNode(&mtnode)
 		count++
 	}
 	mount.nodes = nodes
@@ -77,21 +82,19 @@ func (mount *DIRMount) GetFileDriver(relativePath string) ifiledatas.FileDriver 
 	mtnode := mount.GetMountNode(relativePath)
 	// 解析 mtnode
 	if nil == mtnode || mtnode.Path == "" {
-		panic(errors.New("mount path is not find"))
+		logs.Panicln(errors.New("mount path is not find"))
 	}
 	if mtnode.Addr == "" {
-		panic(errors.New("mount address is nil, at mount path: " + mtnode.Path))
+		logs.Panicln(errors.New("mount address is nil, at mount path: " + mtnode.Path))
 	}
 	if mtnode.Type == "" {
-		panic(errors.New("mount Type is not find"))
-	}
-	//
-	if driver, ok := mount.drivers[mtnode.Type]; ok {
-		return driver.InstanceDriver(mount, mtnode)
+		logs.Panicln(errors.New("mount Type is not find"))
 	}
 	// 不支持的分区挂载类型
-	logs.Panicln(errors.New("Unsupported partition mount type: " + mtnode.Type))
-	return nil
+	if mtnode.Driver == nil {
+		logs.Panicln(errors.New("Unsupported partition mount type: " + mtnode.Type))
+	}
+	return mtnode.Driver
 }
 
 // GetMountNode 查找相对路径下的分区挂载信息
@@ -137,9 +140,8 @@ func (mount *DIRMount) parseMountNode(mtnode *ifiledatas.MountNode) *ifiledatas.
 	// 统一挂载类型大写
 	mtnode.Type = strings.ToUpper(mtnode.Type)
 	if driver, ok := mount.drivers[mtnode.Type]; ok {
-		err := driver.OnDriverRegister(mtnode)
-		if nil == err {
-			// 需要注意挂载路径的结尾符号 /
+		if instance, err := driver.InstanceDriver(mount, mtnode); nil == err {
+			mtnode.Driver = instance
 			mtnode.Path = strutil.Parse2UnixPath(mtnode.Path)
 			mtnode.Depth = len(strings.Split(mtnode.Path, "/")) - 1
 		} else {

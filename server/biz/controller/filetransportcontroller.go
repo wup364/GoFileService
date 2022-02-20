@@ -74,7 +74,7 @@ func (ctl *TransportCtrl) getUserID4Request(r *http.Request) string {
 
 // Token 传输令牌申请
 func (ctl *TransportCtrl) Token(w http.ResponseWriter, r *http.Request) {
-	qdata := r.FormValue("data")
+	qdata := strutil.Parse2UnixPath(r.FormValue("data"))
 	qtype := r.FormValue("type")
 	if len(qtype) == 0 {
 		w.WriteHeader(http.StatusBadRequest)

@@ -13,6 +13,14 @@ package ifiledatas
 
 import "io"
 
+const (
+	AccessTokenType_Read  AccessTokenType = 0
+	AccessTokenType_Write AccessTokenType = 1
+)
+
+// AccessTokenType AccessTokenType
+type AccessTokenType int
+
 // FileDriver 文件管理接口
 type FileDriver interface {
 	GetDriverType() string
@@ -21,9 +29,12 @@ type FileDriver interface {
 	IsFile(src string) bool
 	IsExist(src string) bool
 	// 信息读取
+	GetNode(src string) *Node
+	GetNodes(src []string, ignoreNotIsExist bool) ([]Node, error)
 	GetFileSize(src string) int64
 	GetModifyTime(src string) int64
-	GetDirList(src string) []string
+	GetDirList(src string, limit, offset int) []string
+	GetDirNodeList(src string, limit, offset int) ([]Node, error)
 	// 目录操作
 	DoMkDir(path string) error
 	DoDelete(src string) error
@@ -33,4 +44,22 @@ type FileDriver interface {
 	// 流操作
 	DoWrite(src string, ioReader io.Reader) error
 	DoRead(src string, offset int64) (io.ReadCloser, error)
+	//
+	DoAskAccessToken(src string, tokenType AccessTokenType) (*AccessToken, error)
+}
+
+// Node 文件|夹基础属性
+type Node struct {
+	Path   string
+	Mtime  int64
+	IsFile bool
+	IsDir  bool
+	Size   int64
+}
+
+// AccessToken token信息
+type AccessToken struct {
+	Token    string
+	TokenURL string
+	CTime    int64
 }

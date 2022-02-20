@@ -13,10 +13,12 @@ package ifiledatas
 
 // MountNode 挂载节点信息
 type MountNode struct {
-	Path  string // 挂载路径-虚拟路径
-	Type  string // 挂载类型
-	Addr  string // 实际挂载路径
-	Depth int    // 深度
+	Driver FileDriver // 启动实例
+	Path   string     // 挂载路径-虚拟路径
+	Type   string     // 挂载类型
+	Addr   string     // 实际挂载路径
+	Passwd string     // 部分连接可能有密码
+	Depth  int        // 深度
 }
 
 // DIRMount 虚拟路径挂载管理
@@ -40,10 +42,8 @@ type DIRMount interface {
 
 // DIRMountRegister 路径挂载注册器
 type DIRMountRegister interface {
-	// GetDriverType
+	// GetDriverType GetDriverType
 	GetDriverType() string
-	// 当驱动注册时调用
-	OnDriverRegister(mtnode *MountNode) error
-	// 当驱动实例化时调用
-	InstanceDriver(dirMount DIRMount, mtnode *MountNode) FileDriver
+	// InstanceDriver 当驱动实例化时调用
+	InstanceDriver(dirMount DIRMount, mtnode *MountNode) (FileDriver, error)
 }
