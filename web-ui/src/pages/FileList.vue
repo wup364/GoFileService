@@ -257,10 +257,10 @@ export default {
           key: "size",
           maxWidth: 160,
           render(h, params) {
-            if (params.row.isFile) {
+            if (params.row.isFile || params.row.size > 0) {
               return h("span", $utils.formatSize(params.row.size));
             } else {
-              h("span", "");
+              return h("span", "-");
             }
           },
         },
