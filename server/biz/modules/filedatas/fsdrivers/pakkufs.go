@@ -366,7 +366,7 @@ func (driver *PakkuFsDriver) DoWrite(relativePath string, ioReader io.Reader) er
 }
 
 // DoAskAccessToken 申请访问Token
-func (driver *PakkuFsDriver) DoAskAccessToken(src string, tokenType ifiledatas.AccessTokenType) (*ifiledatas.AccessToken, error) {
+func (driver *PakkuFsDriver) DoAskAccessToken(src string, tokenType ifiledatas.AccessTokenType, props map[string]interface{}) (*ifiledatas.AccessToken, error) {
 	absSrc, _, err := driver.getAbsolutePath(driver.mtn, src)
 	if nil != err {
 		return nil, err
@@ -377,6 +377,11 @@ func (driver *PakkuFsDriver) DoAskAccessToken(src string, tokenType ifiledatas.A
 		}
 		if token, err := driver.sdk.DoAskReadToken(absSrc); nil == err {
 			if url, err := driver.sdk.GetReadStreamURL(token.NodeNo, token.Token, token.EndPoint); nil == err {
+				if len(props) > 0 {
+					if val, ok := props["name"]; ok && len(val.(string)) > 0 {
+						url += "?name=" + val.(string)
+					}
+				}
 				return &ifiledatas.AccessToken{
 					Token:    token.Token,
 					CTime:    token.CTime,

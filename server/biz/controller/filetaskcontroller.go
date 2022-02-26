@@ -31,8 +31,8 @@ func (ctl *AsyncTaskCtrl) AsController() ipakku.ControllerConfig {
 		RouterConfig: ipakku.RouterConfig{
 			ToLowerCase: true,
 			HandlerFunc: [][]interface{}{
-				{"POST", ctl.AsyncExec},
-				{"POST", ctl.AsyncExecToken},
+				{http.MethodGet, ctl.AsyncExec},
+				{http.MethodGet, ctl.AsyncExecToken},
 			},
 		},
 		FilterConfig: ipakku.FilterConfig{

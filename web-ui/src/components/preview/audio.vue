@@ -58,7 +58,13 @@ export default {
     },
     // 切换播放列表
     onMusicUpdate(music) {
+      let token = $filepreview.sync.samedirtoken(music.filetoken, [
+        music.filename,
+      ]);
+      music.src = token[music.filename].tokenURL;
       if (!music._cover_) {
+        document.getElementById("bg").style.backgroundImage =
+          "url('/static/img/preview/loading2.gif')";
         this.getCover(music, () => {
           music._cover_ = true;
           document.getElementById("bg").style.backgroundImage =
@@ -92,10 +98,12 @@ export default {
               res.cindex = res.list.length;
             }
             res.list.push({
+              filetoken: token,
+              filename: node.path.getName(),
               title: node.path.getName(false),
               artist: $utils.formatSize(node.size),
-              src: $filepreview.buildStreamURL(token, node.path.getName()),
               pic: "/static/img/preview/default_cover.png",
+              src: "",
               lrc: "",
             });
           }

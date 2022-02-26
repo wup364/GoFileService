@@ -48,20 +48,40 @@ export default {
       window.open(item.cover);
     },
     doLoadMore() {
-      this.isLoading = true;
-      setTimeout(() => {
-        if (this.allDatas.list.length > 0) {
-          let startIndex = ++this.pageIndex * this.pageSize;
-          let stopIndex = (this.pageIndex + 1) * this.pageSize;
-          this.allDatas.list.slice(startIndex, stopIndex).forEach((row) => {
-            this.list.push(row);
+      if (this.allDatas.list.length > 0) {
+        this.isLoading = true;
+        let startIndex = ++this.pageIndex * this.pageSize;
+        let stopIndex = (this.pageIndex + 1) * this.pageSize;
+        let newList = this.allDatas.list.slice(startIndex, stopIndex);
+        //
+        let names = [];
+        let token = this.$route.query.token;
+        newList.forEach((row) => {
+          if (row.intro) {
+            names.push(row.intro);
+          }
+        });
+        $filepreview
+          .samedirtoken(token, names)
+          .then((datas) => {
+            newList.forEach((row) => {
+              if (row.intro && datas[row.intro]) {
+                row.cover = datas[row.intro].tokenURL;
+              } else {
+                row.cover = "/static/img/preview/loading.gif";
+              }
+            });
+            this.list = this.list.concat(newList);
+            this.isLoading = false;
+          })
+          .catch((err) => {
+            console.error(err);
+            this.isLoading = false;
           });
-        }
-        this.isLoading = false;
-      });
+      }
     },
     // 构建list
-    doBuilList(token, datas) {
+    doBuilList(datas) {
       let res = {
         cindex: -1,
         list: [],
@@ -86,7 +106,7 @@ export default {
               continue;
             }
             res.list.push({
-              cover: $filepreview.buildStreamURL(token, node.path.getName()),
+              cover: "",
               title: "SEQ-" + (i + 1),
               intro: node.path.getName(),
             });
@@ -107,9 +127,8 @@ export default {
               loaddingText: loaddingText,
             });
             // 开始播放
-            this.allDatas = this.doBuilList(token, datas);
+            this.allDatas = this.doBuilList(datas);
             this.doLoadMore();
-            loaddingText = "图片预览"; //datas.path.getName(false);
             // 刷新顶部title
             this.$emit("on-loading", {
               title: datas.path.getName(false),

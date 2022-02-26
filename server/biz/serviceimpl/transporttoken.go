@@ -39,8 +39,8 @@ func (n *TransportToken) Pakku() ipakku.Opts {
 }
 
 // AskWriteToken 申请写入token
-func (n *TransportToken) AskWriteToken(src string) (*service.StreamToken, error) {
-	if token, err := n.f.DoAskAccessToken(src, service.AccessTokenType(service.StreamTokenType_Write)); nil != err {
+func (n *TransportToken) AskWriteToken(src string, props map[string]interface{}) (*service.StreamToken, error) {
+	if token, err := n.f.DoAskAccessToken(src, service.AccessTokenType(service.StreamTokenType_Write), props); nil != err {
 		return nil, err
 	} else {
 		st := &service.StreamToken{
@@ -59,12 +59,12 @@ func (n *TransportToken) AskWriteToken(src string) (*service.StreamToken, error)
 }
 
 // AskReadToken 申请读取token
-func (n *TransportToken) AskReadToken(src string) (*service.StreamToken, error) {
+func (n *TransportToken) AskReadToken(src string, props map[string]interface{}) (*service.StreamToken, error) {
 	var node *service.FNode
 	if node = n.f.GetNode(src); nil == node || !node.IsFile {
 		return nil, fileutil.PathNotExist("askReadToken", src)
 	}
-	if token, err := n.f.DoAskAccessToken(src, service.AccessTokenType(service.StreamTokenType_Read)); nil != err {
+	if token, err := n.f.DoAskAccessToken(src, service.AccessTokenType(service.StreamTokenType_Read), props); nil != err {
 		return nil, err
 	} else {
 		st := &service.StreamToken{

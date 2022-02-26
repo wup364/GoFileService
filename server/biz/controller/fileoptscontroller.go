@@ -37,11 +37,11 @@ func (ctl *FileOptsCtrl) AsController() ipakku.ControllerConfig {
 		RouterConfig: ipakku.RouterConfig{
 			ToLowerCase: true,
 			HandlerFunc: [][]interface{}{
-				{"GET", ctl.Info},
-				{"GET", ctl.List},
-				{"DELETE", ctl.Del},
-				{"POST", ctl.ReName},
-				{"POST", ctl.NewFolder},
+				{http.MethodGet, ctl.Info},
+				{http.MethodGet, ctl.List},
+				{http.MethodDelete, ctl.Del},
+				{http.MethodPost, ctl.ReName},
+				{http.MethodPost, ctl.NewFolder},
 			},
 		},
 		FilterConfig: ipakku.FilterConfig{

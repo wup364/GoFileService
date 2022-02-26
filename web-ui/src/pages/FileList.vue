@@ -557,7 +557,7 @@ export default {
             this.$nextTick(() => {
               let download = document.createElement("iframe");
               download.style.display = "none";
-              download.src = data;
+              download.src = data.tokenURL;
               document.body.appendChild(download);
               setTimeout(() => {
                 document.body.removeChild(download);
@@ -594,7 +594,7 @@ export default {
             .GetSteamUrl(node.path)
             .then((data) => {
               this.$nextTick(() => {
-                window.open(data);
+                window.open(data.tokenURL);
               });
             })
             .catch((err) => {

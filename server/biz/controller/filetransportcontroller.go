@@ -39,9 +39,11 @@ func (ctl *TransportCtrl) AsController() ipakku.ControllerConfig {
 		RouterConfig: ipakku.RouterConfig{
 			ToLowerCase: true,
 			HandlerFunc: [][]interface{}{
-				{"GET", "read/:" + `[\s\S]*`, ctl.Read},
-				{"ANY", "put/:" + `[\s\S]*`, ctl.Put},
-				{"GET", ctl.Token},
+				{http.MethodHead, "read/:" + `[\s\S]*`, ctl.ReadHead},
+				{http.MethodGet, "read/:" + `[\s\S]*`, ctl.Read},
+				{http.MethodPost, "put/:" + `[\s\S]*`, ctl.Put},
+				{http.MethodPut, "put/:" + `[\s\S]*`, ctl.Put},
+				{http.MethodGet, ctl.Token},
 			},
 		},
 		FilterConfig: ipakku.FilterConfig{
@@ -83,17 +85,23 @@ func (ctl *TransportCtrl) Token(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var token *service.StreamToken
 	//
-	if qtype == "download" {
+	if qtype == "stream" {
 		if !ctl.checkPermision(ctl.getUserID4Request(r), qdata, service.FPM_Read) {
 			err = ErrorPermissionInsufficient
 		} else {
-			token, err = ctl.tt.AskReadToken(qdata)
+			token, err = ctl.tt.AskReadToken(qdata, nil)
+		}
+	} else if qtype == "download" {
+		if !ctl.checkPermision(ctl.getUserID4Request(r), qdata, service.FPM_Read) {
+			err = ErrorPermissionInsufficient
+		} else {
+			token, err = ctl.tt.AskReadToken(qdata, map[string]interface{}{"name": strutil.GetPathName(qdata)})
 		}
 	} else if qtype == "upload" {
 		if !ctl.checkPermision(ctl.getUserID4Request(r), qdata, service.FPM_Write) {
 			err = ErrorPermissionInsufficient
 		} else {
-			token, err = ctl.tt.AskWriteToken(qdata)
+			token, err = ctl.tt.AskWriteToken(qdata, nil)
 		}
 	} else {
 		err = ErrorNotSupport
@@ -159,6 +167,22 @@ func (ctl *TransportCtrl) Put(w http.ResponseWriter, r *http.Request) {
 }
 
 // Read 下载
+func (ctl *TransportCtrl) ReadHead(w http.ResponseWriter, r *http.Request) {
+	if token, err := ctl.getSteamToken(strutil.GetPathName(r.URL.Path)); nil != err || nil == token {
+		serviceutil.SendBadRequest(w, err.Error())
+		return
+	} else {
+		maxSize := ctl.fm.GetFileSize(token.FilePath)
+		start, end, hasRange := serviceutil.GetRequestRange(r, maxSize)
+		w.Header().Set("Content-Length", strconv.Itoa(int(end-start)))
+		if hasRange {
+			w.Header().Set("Content-Range", "bytes "+strconv.Itoa(int(start))+"-"+strconv.Itoa(int(end-1))+"/"+strconv.Itoa(int(maxSize)))
+		}
+	}
+
+}
+
+// Read 下载
 func (ctl *TransportCtrl) Read(w http.ResponseWriter, r *http.Request) {
 	qToken := strutil.GetPathName(r.URL.Path)
 	token, err := ctl.getSteamToken(qToken)
@@ -175,10 +199,10 @@ func (ctl *TransportCtrl) Read(w http.ResponseWriter, r *http.Request) {
 			ctl.tt.RefreshToken(qToken)
 		}
 	}
-	// 默认设置下载头
-	if r.FormValue("action") != "stream" {
-		w.Header().Set("Content-Disposition", "attachment; filename="+strutil.GetPathName(token.FilePath))
-		w.Header().Set("Content-Type", strutil.GetMimeTypeBySuffix(strutil.GetPathSuffix(token.FilePath)))
+	// name
+	if name := r.FormValue("name"); len(name) > 0 {
+		w.Header().Set("Content-Type", strutil.GetMimeTypeBySuffix(name))
+		w.Header().Set("Content-Disposition", "attachment; filename="+name)
 	}
 	//
 	maxSize := ctl.fm.GetFileSize(token.FilePath)

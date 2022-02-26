@@ -296,11 +296,11 @@ func (fns *FileDatas) GetDirNodeList(relativePath string, limit int, offset int)
 }
 
 // DoAskAccessToken 获取一个访问token
-func (fns *FileDatas) DoAskAccessToken(src string, tokenType service.AccessTokenType) (*service.AccessToken, error) {
+func (fns *FileDatas) DoAskAccessToken(src string, tokenType service.AccessTokenType, props map[string]interface{}) (*service.AccessToken, error) {
 	if fs, err := fns.getPathDriver(src); nil != err {
 		return nil, err
 	} else {
-		if token, err := fs.DoAskAccessToken(src, ifiledatas.AccessTokenType(tokenType)); nil == err {
+		if token, err := fs.DoAskAccessToken(src, ifiledatas.AccessTokenType(tokenType), props); nil == err {
 			return &service.AccessToken{
 				Token:    token.Token,
 				CTime:    token.CTime,

@@ -108,6 +108,37 @@ export const $apitools = {
 		return request;
 	},
 	/**
+	 * 普通Api请求
+	 */
+	AjaxRequest(opts) {
+		return new Promise((resolve, reject) => {
+			$utils.AjaxRequest(opts).do((xhr, opt) => {
+				if (xhr.readyState === 4) {
+					let res = $apitools.apiResponseFormat(xhr);
+					if (res.code === 200) {
+						resolve(res.data);
+					} else {
+						reject(res.data);
+					}
+				}
+			});
+		});
+	},
+	/**
+	 * 普通Api请求-同步
+	 */
+	AjaxRequestAync(opts) {
+		opts.async = false;
+		return $utils.AjaxRequest(opts).do((xhr, opt) => {
+			let res = $apitools.apiResponseFormat(xhr);
+			if (res.code === 200) {
+				return res.data;
+			} else {
+				throw res.data;
+			}
+		});
+	},
+	/**
 	 * 相应结构格式化
 	 */
 	apiResponseFormat(xhr) {

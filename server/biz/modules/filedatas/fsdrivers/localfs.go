@@ -406,7 +406,7 @@ func (locl *LocalDriver) DoWrite(relativePath string, ioReader io.Reader) error 
 }
 
 // DoAskAccessToken 申请访问Token
-func (locl *LocalDriver) DoAskAccessToken(src string, tokenType ifiledatas.AccessTokenType) (*ifiledatas.AccessToken, error) {
+func (locl *LocalDriver) DoAskAccessToken(src string, tokenType ifiledatas.AccessTokenType, props map[string]interface{}) (*ifiledatas.AccessToken, error) {
 	if !locl.IsExist(src) {
 		return nil, fileutil.PathNotExist("AskAccessToken", src)
 	}

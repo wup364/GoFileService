@@ -32,8 +32,8 @@ type StreamTokenType int
 
 // TransportToken 传输token控制
 type TransportToken interface {
-	AskWriteToken(src string) (*StreamToken, error)
-	AskReadToken(src string) (*StreamToken, error)
+	AskWriteToken(src string, props map[string]interface{}) (*StreamToken, error)
+	AskReadToken(src string, props map[string]interface{}) (*StreamToken, error)
 	QueryToken(token string) (*StreamToken, error)
 	RefreshToken(token string) (st *StreamToken, err error)
 	DestroyToken(token string, override bool) (err error)

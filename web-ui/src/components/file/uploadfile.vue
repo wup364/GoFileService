@@ -139,6 +139,7 @@ export default {
         }
         // file._upload.index = this.dindex-1;
         let opts = {
+          method:"PUT",
           form: {},
           header: {},
           progress: (e) => {
@@ -168,8 +169,12 @@ export default {
         file._upload.started = true;
         $fileopts
           .GetUploadUrl(file._upload.base + "/" + file.name)
-          .then((url) => {
-            file._upload.updater = $utils.uploadByFormData(url, file, opts);
+          .then((data) => {
+            file._upload.updater = $utils.uploadByFormData(
+              data.tokenURL,
+              file,
+              opts
+            );
             file._upload.updater.start();
           })
           .catch((err) => {
