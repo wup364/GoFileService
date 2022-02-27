@@ -43,13 +43,16 @@ func (ctl *TransportCtrl) AsController() ipakku.ControllerConfig {
 				{http.MethodGet, "read/:" + `[\s\S]*`, ctl.Read},
 				{http.MethodPost, "put/:" + `[\s\S]*`, ctl.Put},
 				{http.MethodPut, "put/:" + `[\s\S]*`, ctl.Put},
-				{http.MethodGet, ctl.Token},
+				{http.MethodGet, "token", ctl.GetToken},
+				{http.MethodPost, "token", ctl.PostToken},
 			},
 		},
 		FilterConfig: ipakku.FilterConfig{
 			FilterFunc: [][]interface{}{
 				{`/:[\s\S]*`, func(rw http.ResponseWriter, r *http.Request) bool {
 					if strings.Contains(r.URL.Path, "/read/") || strings.Contains(r.URL.Path, "/put/") {
+						return true
+					} else if strings.Contains(r.URL.Path, "/token") && r.FormValue("type") == "submitupload" {
 						return true
 					}
 					return ctl.um.GetAuthFilterFunc()(rw, r)
@@ -74,8 +77,8 @@ func (ctl *TransportCtrl) getUserID4Request(r *http.Request) string {
 	return ""
 }
 
-// Token 传输令牌申请
-func (ctl *TransportCtrl) Token(w http.ResponseWriter, r *http.Request) {
+// GetToken 传输令牌申请
+func (ctl *TransportCtrl) GetToken(w http.ResponseWriter, r *http.Request) {
 	qdata := strutil.Parse2UnixPath(r.FormValue("data"))
 	qtype := r.FormValue("type")
 	if len(qtype) == 0 {
@@ -106,10 +109,29 @@ func (ctl *TransportCtrl) Token(w http.ResponseWriter, r *http.Request) {
 	} else {
 		err = ErrorNotSupport
 	}
-	if nil != token {
-		serviceutil.SendSuccess(w, token.ToDto())
-	} else if nil != err {
+	if nil != err {
 		serviceutil.SendBadRequest(w, err.Error())
+	} else {
+		serviceutil.SendSuccess(w, token.ToDto())
+	}
+}
+
+// PostToken 传输令牌操作
+func (ctl *TransportCtrl) PostToken(w http.ResponseWriter, r *http.Request) {
+	qtype := r.FormValue("type")
+	if len(qtype) == 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	var result interface{}
+	var err error
+	if qtype == "submitupload" {
+		result, err = ctl.tt.SubmitToken(r.FormValue("token"), map[string]interface{}{"override": strutil.String2Bool(r.FormValue("override"))})
+	}
+	if nil != err {
+		serviceutil.SendBadRequest(w, err.Error())
+	} else {
+		serviceutil.SendSuccess(w, result)
 	}
 }
 

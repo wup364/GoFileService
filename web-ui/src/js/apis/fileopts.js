@@ -9,7 +9,6 @@
 
 "use strict";
 import { $apitools } from "./apitools";
-import { $utils } from "../utils";
 export const $fileopts = {
 	// 列表路径
 	List(path) {
@@ -67,6 +66,14 @@ export const $fileopts = {
 				data.tokenURL = $apitools.buildAPIURL("/filestream/v1/put/" + data.token);
 			}
 			return data;
+		});
+	},
+	// 获取token提交地址
+	GetSubmitTokenUrl(token, override) {
+		return $apitools.buildAPIURL("/filestream/v1/token", {
+			"type": 'submitupload',
+			"token": token ? token : '',
+			"override": override ? override : false,
 		});
 	},
 	// ---------------------------------------------

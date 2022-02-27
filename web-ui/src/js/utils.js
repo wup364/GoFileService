@@ -349,16 +349,21 @@ export const $utils = {
 				uploader.xhr.abort();
 			},
 			start: () => {
-				uploader.xhr.open(uploader.ctrl.method, url);
-				for (let key in uploader.ctrl.header) {
-					uploader.xhr.setRequestHeader(key, uploader.ctrl.header[key])
+				try {
+					uploader.xhr.open(uploader.ctrl.method, url);
+					for (let key in uploader.ctrl.header) {
+						uploader.xhr.setRequestHeader(key, uploader.ctrl.header[key]);
+					}
+					uploader.xhr.overrideMimeType("application/octet-stream");
+					uploader.xhr.send(uploader.formData);
+					uploader.xhr.onerror = uploader.ctrl.error;
+				} catch (error) {
+					uploader.ctrl.error(error);
 				}
-				uploader.xhr.overrideMimeType("application/octet-stream");
-				uploader.xhr.send(uploader.formData);
 			}
 		};
 		// 合并配置
-		uploader.ctrl = this.extendAttrs(uploader.ctrl, ctrl);
+		uploader.ctrl = Object.assign(uploader.ctrl, ctrl);
 		// 添加表单
 		for (let key in uploader.ctrl.form) {
 			uploader.formData.append(key, uploader.ctrl.form[key]);
@@ -367,7 +372,16 @@ export const $utils = {
 		// 绑定事件
 		uploader.xhr.upload.addEventListener('loadstart', uploader.ctrl.loadstart);
 		uploader.xhr.upload.addEventListener('load', uploader.ctrl.load);
-		uploader.xhr.upload.addEventListener("loadend", uploader.ctrl.loadend);
+		uploader.xhr.upload.addEventListener("loadend", (e) => {
+			let doLoadend = () => {
+				if (uploader.xhr.readyState !== 4) {
+					setTimeout(doLoadend, 50);
+				} else {
+					uploader.ctrl.loadend(e);
+				}
+			};
+			doLoadend();
+		});
 		uploader.xhr.upload.addEventListener("progress", uploader.ctrl.progress);
 		uploader.xhr.upload.addEventListener('error', uploader.ctrl.error);
 		uploader.xhr.upload.addEventListener('abort', uploader.ctrl.abort);
@@ -404,7 +418,7 @@ export const $utils = {
 				self.reader.readAsArrayBuffer(blob);
 			}
 		};
-		uploader.ctrl = this.extendAttrs(uploader.ctrl, ctrl);
+		uploader.ctrl = Object.assign(uploader.ctrl, ctrl);
 		uploader.xhr.upload.addEventListener("progress", (e) => {
 			if (e.lengthComputable) {
 				uploader.ctrl.progress(Math.round((e.loaded * 100) / e.total), e);

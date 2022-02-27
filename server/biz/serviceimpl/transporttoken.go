@@ -48,6 +48,7 @@ func (n *TransportToken) AskWriteToken(src string, props map[string]interface{})
 			Token:    token.Token,
 			CTime:    token.CTime,
 			TokenURL: token.TokenURL,
+			FsysType: token.DriverType,
 			Type:     service.StreamTokenType_Write,
 		}
 		if err := n.c.Set(service.CacheLib_StreamToken, token.Token, st); nil == err {
@@ -72,6 +73,7 @@ func (n *TransportToken) AskReadToken(src string, props map[string]interface{}) 
 			Token:    token.Token,
 			CTime:    token.CTime,
 			TokenURL: token.TokenURL,
+			FsysType: token.DriverType,
 			Type:     service.StreamTokenType_Read,
 		}
 		if err := n.c.Set(service.CacheLib_StreamToken, token.Token, st); nil == err {
@@ -79,6 +81,20 @@ func (n *TransportToken) AskReadToken(src string, props map[string]interface{}) 
 		} else {
 			return nil, err
 		}
+	}
+}
+
+// SubmitToken 提交token
+func (n *TransportToken) SubmitToken(token string, props map[string]interface{}) (*service.FNode, error) {
+	if tokenObj, err := n.QueryToken(token); nil == err {
+		return n.f.DoSubmitToken(service.AccessToken{
+			Path:     tokenObj.FilePath,
+			Token:    tokenObj.Token,
+			CTime:    tokenObj.CTime,
+			TokenURL: tokenObj.TokenURL,
+		}, props)
+	} else {
+		return nil, err
 	}
 }
 

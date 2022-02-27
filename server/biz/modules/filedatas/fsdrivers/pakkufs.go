@@ -149,7 +149,7 @@ func (driver *PakkuFsDriver) GetNodes(src []string, ignoreNotIsExist bool) (resu
 		result = make([]ifiledatas.Node, len(nodes))
 		for i := 0; i < len(nodes); i++ {
 			result[i] = ifiledatas.Node{
-				// Path:   src, // TODO path
+				// Path:   src, // TODO Path
 				Mtime:  nodes[i].Mtime,
 				IsFile: nodes[i].Flag == 1,
 				IsDir:  nodes[i].Flag == 0,
@@ -409,6 +409,32 @@ func (driver *PakkuFsDriver) DoAskAccessToken(src string, tokenType ifiledatas.A
 		}
 	} else {
 		return nil, errors.New("unsupported token type")
+	}
+}
+
+// DoSubmitToken 递交令牌
+func (driver *PakkuFsDriver) DoSubmitToken(token string, props map[string]interface{}) (*ifiledatas.Node, error) {
+	override := false
+	if len(props) > 0 {
+		if val, ok := props["override"]; ok {
+			if nvl, ok := val.(bool); ok {
+				override = nvl
+			} else if nvl, ok := val.(string); ok {
+				override = strutil.String2Bool(nvl)
+			}
+		}
+	}
+	if node, err := driver.sdk.DoSubmitWriteToken(token, override); nil == err {
+		return &ifiledatas.Node{
+			// Path:   "", // TODO Path
+			Mtime:  node.Mtime,
+			IsFile: node.Flag == 1,
+			IsDir:  node.Flag == 0,
+			Size:   node.Size,
+		}, nil
+
+	} else {
+		return nil, err
 	}
 }
 

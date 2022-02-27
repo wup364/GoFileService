@@ -41,6 +41,7 @@ type FileDatas interface {
 	DoRead(src string, offset int64) (io.ReadCloser, error)
 	//
 	DoAskAccessToken(src string, tokenType AccessTokenType, props map[string]interface{}) (*AccessToken, error)
+	DoSubmitToken(token AccessToken, props map[string]interface{}) (*FNode, error)
 }
 
 // FNode 文件|夹基础属性(filedatas)
@@ -83,7 +84,9 @@ func (dto *FNodeDto) ToJSON() string {
 
 // AccessToken token信息
 type AccessToken struct {
-	Token    string
-	TokenURL string
-	CTime    int64
+	Path       string
+	Token      string
+	TokenURL   string
+	CTime      int64
+	DriverType string
 }

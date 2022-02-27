@@ -300,11 +300,33 @@ func (fns *FileDatas) DoAskAccessToken(src string, tokenType service.AccessToken
 	if fs, err := fns.getPathDriver(src); nil != err {
 		return nil, err
 	} else {
+
 		if token, err := fs.DoAskAccessToken(src, ifiledatas.AccessTokenType(tokenType), props); nil == err {
 			return &service.AccessToken{
-				Token:    token.Token,
-				CTime:    token.CTime,
-				TokenURL: token.TokenURL,
+				Path:       src,
+				Token:      token.Token,
+				CTime:      token.CTime,
+				TokenURL:   token.TokenURL,
+				DriverType: fs.GetDriverType(),
+			}, nil
+		} else {
+			return nil, err
+		}
+	}
+}
+
+// DoSubmitToken 提交令牌
+func (fns *FileDatas) DoSubmitToken(token service.AccessToken, props map[string]interface{}) (*service.FNode, error) {
+	if fs, err := fns.getPathDriver(token.Path); nil != err {
+		return nil, err
+	} else {
+		if node, err := fs.DoSubmitToken(token.Token, props); nil == err {
+			return &service.FNode{
+				Path:   token.Path,
+				Mtime:  node.Mtime,
+				IsFile: node.IsFile,
+				IsDir:  node.IsDir,
+				Size:   node.Size,
 			}, nil
 		} else {
 			return nil, err

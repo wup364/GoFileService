@@ -73,6 +73,7 @@
 
 <script>
 import { $utils } from "../../js/utils";
+import { $fileupload } from "../../js/apis/fileupload";
 import { $fileopts } from "../../js/apis/fileopts";
 export default {
   name: "uploadfile",
@@ -80,7 +81,7 @@ export default {
   data() {
     return {
       isShowDrawer: false, // 显示抽屉
-      maxuploading: 5, // 最大正在上传的个数
+      maxuploading: 3, // 最大正在上传的个数
       countuploading: 0, // 正在上传的个数
       dindex: 0, // 当前数据下标
       files: [], // 文件
@@ -139,7 +140,7 @@ export default {
         }
         // file._upload.index = this.dindex-1;
         let opts = {
-          method:"PUT",
+          method: "PUT",
           form: {},
           header: {},
           progress: (e) => {
@@ -148,7 +149,7 @@ export default {
             this.$set(this.files, file._upload.index, file);
           },
           error: (e) => {
-            file._upload.err = e ? e.toString() : "上传失败";
+            file._upload.err = e && e.message ? e.message : "上传失败";
             this.$set(this.files, file._upload.index, file);
           },
           abort: (e) => {
@@ -170,8 +171,11 @@ export default {
         $fileopts
           .GetUploadUrl(file._upload.base + "/" + file.name)
           .then((data) => {
-            file._upload.updater = $utils.uploadByFormData(
+            data.submiturl = $fileopts.GetSubmitTokenUrl(data.token, true);
+            file._upload.updater = $fileupload.upload(
+              data.fsysType,
               data.tokenURL,
+              data.submiturl,
               file,
               opts
             );
