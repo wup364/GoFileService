@@ -21,10 +21,10 @@ export default {
             // 获取字幕文件
             let subtitleFilePath = "";
             let fileName = datas.path.getName(false);
-            if (datas && datas.peerdatas) {
+            if (datas && datas.peerDatas) {
               let supportSuffixe = ["vtt" /*, 'ass', 'srt', 'webvtt'*/];
-              for (let i = 0; i < datas.peerdatas.length; i++) {
-                let tpath = datas.peerdatas[i].path;
+              for (let i = 0; i < datas.peerDatas.length; i++) {
+                let tpath = datas.peerDatas[i].path;
                 if (
                   tpath &&
                   supportSuffixe.indexOf(
@@ -32,7 +32,7 @@ export default {
                   ) > -1 &&
                   tpath.indexOf(fileName) > -1
                 ) {
-                  subtitleFilePath = datas.peerdatas[i].path;
+                  subtitleFilePath = datas.peerDatas[i].path;
                   break;
                 }
               }
@@ -44,7 +44,7 @@ export default {
             });
             let filenames = [datas.path.getName()];
             if (subtitleFilePath) {
-              filenames.push(subtitleFilePath);
+              filenames.push(subtitleFilePath.getName());
             }
             let tokendatas = $filepreview.sync.samedirtoken(token, filenames);
             let dpOpts = {
@@ -60,7 +60,7 @@ export default {
             // 字幕
             if (subtitleFilePath) {
               dpOpts.subtitle = {
-                url: tokendatas[subtitleFilePath].tokenURL,
+                url: tokendatas[subtitleFilePath.getName()].tokenURL,
               };
             }
             // 开始播放
