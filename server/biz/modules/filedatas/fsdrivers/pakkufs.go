@@ -54,12 +54,9 @@ func (driver PakkuFsDriver) InstanceDriver(dirMount ifiledatas.DIRMount, mtnode 
 	instance := &PakkuFsDriver{
 		mtm: dirMount,
 		mtn: mtnode,
-		sdk: opensdk.NewOpenApi(opensdk.Conn4RPC{
-			RPCAddr: rpcAddr,
-			User: &opensdk.User{
-				User:   authInfo[0],
-				Passwd: mtnode.Passwd,
-			},
+		sdk: opensdk.NewOpenApi(rpcAddr, opensdk.User{
+			User:   authInfo[0],
+			Passwd: mtnode.Passwd,
 		}),
 	}
 	// endpoint

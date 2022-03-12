@@ -68,91 +68,91 @@ export const $fileupload = {
 
 		// 分片&计算sha256
 		let doUpload = (chunck) => {
-			uploader.currentReader = new FileReader();
-			uploader.currentReader.readAsArrayBuffer(chunck);
-			uploader.currentReader.onloadend = (e) => {
-				let sha256val = sha256(uploader.currentReader.result);
-				// let sha256val = "30776f18aa1134050abd53c87af00073a370f83b1fb60b3bf734c11d207499fe";
-				let chunckURL = this.buildParams(streamurl, { hash: sha256val, number: ++uploader.currentChunckNum });
-				uploader.currentReader = null;
-				uploader.currentUploader = this.uploadByFormData(chunckURL, chunck, {
-					filekey: "file",
-					method: uploader.opts.method,
-					header: uploader.opts.header,
-					form: uploader.opts.header,
-					loadstart: (e) => {
-						if (1 === uploader.currentChunckNum) {
-							uploader.opts.loadstart(e);
-						}
-					},
-					loadend: (e) => {
-						if (!uploader.aborted) {
-							let chunck = this.cuteFile(file, this.opts.chunkSize);
-							if (chunck) {
-								setTimeout(() => {
-									doUpload(chunck);
-								});
-							} else {
-								let doSubmit = () => {
-									if (uploader.currentUploader.xhr.readyState !== 4) {
-										setTimeout(doSubmit, 50);
-									} else {
-										try {
-											this.AjaxRequest({
-												method: "POST",
-												uri: submiturl,
-											}).do((xhr) => {
-												if (xhr.readyState === 4) {
-													if (xhr.status === 200) {
-														uploader.opts.loadend();
-													} else {
-														uploader.opts.error(new Error(xhr.statusText));
-													}
+			// uploader.currentReader = new FileReader();
+			// uploader.currentReader.readAsArrayBuffer(chunck);
+			// uploader.currentReader.onloadend = (e) => {
+			// 	let sha256val = sha256(uploader.currentReader.result);
+			let sha256val = "";
+			let chunckURL = this.buildParams(streamurl, { hash: sha256val, number: ++uploader.currentChunckNum });
+			// uploader.currentReader = null;
+			uploader.currentUploader = this.uploadByFormData(chunckURL, chunck, {
+				filekey: "file",
+				method: uploader.opts.method,
+				header: uploader.opts.header,
+				form: uploader.opts.header,
+				loadstart: (e) => {
+					if (1 === uploader.currentChunckNum) {
+						uploader.opts.loadstart(e);
+					}
+				},
+				loadend: (e) => {
+					if (!uploader.aborted) {
+						let chunck = this.cuteFile(file, this.opts.chunkSize);
+						if (chunck) {
+							setTimeout(() => {
+								doUpload(chunck);
+							});
+						} else {
+							let doSubmit = () => {
+								if (uploader.currentUploader.xhr.readyState !== 4) {
+									setTimeout(doSubmit, 50);
+								} else {
+									try {
+										this.AjaxRequest({
+											method: "POST",
+											uri: submiturl,
+										}).do((xhr) => {
+											if (xhr.readyState === 4) {
+												if (xhr.status === 200) {
+													uploader.opts.loadend();
+												} else {
+													uploader.opts.error(new Error(xhr.statusText));
 												}
-											})
-										} catch (error) {
-											uploader.opts.error(error);
-										}
+											}
+										})
+									} catch (error) {
+										uploader.opts.error(error);
 									}
-								};
-								doSubmit();
-							}
-						} else if (!uploader.currentUploader._aborted) {
-							uploader.currentUploader._aborted = true;
-							uploader.opts.abort(e);
+								}
+							};
+							doSubmit();
 						}
-					},
-					error: (e) => {
-						uploader.aborted = true;
+					} else if (!uploader.currentUploader._aborted) {
 						uploader.currentUploader._aborted = true;
-						uploader.opts.error(e);
-					},
-					abort: (e) => {
-						if (!uploader.currentUploader._aborted) {
-							uploader.currentUploader._aborted = true;
-							uploader.opts.abort(e);
-						}
-					},
-					progress: (e) => {
-						uploader.loadSize = (uploader.currentChunckNum ? (uploader.currentChunckNum - 1) * this.opts.chunkSize : 0) + e.loaded;
-						if (uploader.loadSize > uploader.totalSize) {
-							uploader.loadSize = uploader.totalSize;
-						}
-						uploader.opts.progress({
-							loaded: uploader.loadSize,
-							total: uploader.totalSize,
-						});
-					},
-				});
-				uploader.currentUploader.start();
-			};
-			uploader.currentReader.onerror = uploader.opts.error;
-			uploader.currentReader.onabort = (e) => {
-				if (!uploader.currentUploader._aborted) {
+						uploader.opts.abort(e);
+					}
+				},
+				error: (e) => {
+					uploader.aborted = true;
 					uploader.currentUploader._aborted = true;
-					uploader.opts.abort(e);
-				}
-			};
+					uploader.opts.error(e);
+				},
+				abort: (e) => {
+					if (!uploader.currentUploader._aborted) {
+						uploader.currentUploader._aborted = true;
+						uploader.opts.abort(e);
+					}
+				},
+				progress: (e) => {
+					uploader.loadSize = (uploader.currentChunckNum ? (uploader.currentChunckNum - 1) * this.opts.chunkSize : 0) + e.loaded;
+					if (uploader.loadSize > uploader.totalSize) {
+						uploader.loadSize = uploader.totalSize;
+					}
+					uploader.opts.progress({
+						loaded: uploader.loadSize,
+						total: uploader.totalSize,
+					});
+				},
+			});
+			uploader.currentUploader.start();
+			// };
+			// uploader.currentReader.onerror = uploader.opts.error;
+			// uploader.currentReader.onabort = (e) => {
+			// 	if (!uploader.currentUploader._aborted) {
+			// 		uploader.currentUploader._aborted = true;
+			// 		uploader.opts.abort(e);
+			// 	}
+			// };
 		}
 
 		// 上传单片&触发事件
