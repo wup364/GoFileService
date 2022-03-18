@@ -45,7 +45,19 @@ export default {
   },
   methods: {
     onShowBig(item) {
-      window.open(item.cover);
+      $filepreview
+        .samedirtoken(this.$route.query.token, [item.intro])
+        .then((datas) => {
+          if (datas[item.intro] && datas[item.intro].tokenURL) {
+            window.open(datas[item.intro].tokenURL);
+          } else {
+            this.$Message.error("查看大图失败");
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+          this.$Message.error(err.toString());
+        });
     },
     doLoadMore() {
       if (this.allDatas.list.length > 0) {

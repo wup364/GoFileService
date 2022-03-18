@@ -39,10 +39,10 @@ func (ctl *TransportCtrl) AsController() ipakku.ControllerConfig {
 		RouterConfig: ipakku.RouterConfig{
 			ToLowerCase: true,
 			HandlerFunc: [][]interface{}{
-				{http.MethodHead, "read/:" + `[\s\S]*`, ctl.ReadHead},
-				{http.MethodGet, "read/:" + `[\s\S]*`, ctl.Read},
-				{http.MethodPost, "put/:" + `[\s\S]*`, ctl.Put},
-				{http.MethodPut, "put/:" + `[\s\S]*`, ctl.Put},
+				{http.MethodHead, "read/:[A-Za-z0-9]+$", ctl.ReadHead},
+				{http.MethodGet, "read/:[A-Za-z0-9]+$", ctl.Read},
+				{http.MethodPost, "put/:[A-Za-z0-9]+$", ctl.Put},
+				{http.MethodPut, "put/:[A-Za-z0-9]+$", ctl.Put},
 				{http.MethodGet, "token", ctl.GetToken},
 				{http.MethodPost, "token", ctl.PostToken},
 			},
@@ -127,6 +127,8 @@ func (ctl *TransportCtrl) PostToken(w http.ResponseWriter, r *http.Request) {
 	var err error
 	if qtype == "submitupload" {
 		result, err = ctl.tt.SubmitToken(r.FormValue("token"), map[string]interface{}{"override": strutil.String2Bool(r.FormValue("override"))})
+	} else {
+		err = ErrorNotSupport
 	}
 	if nil != err {
 		serviceutil.SendBadRequest(w, err.Error())
@@ -170,6 +172,7 @@ func (ctl *TransportCtrl) Put(w http.ResponseWriter, r *http.Request) {
 			if err = ctl.fm.DoWrite(token.FilePath, p); nil != err {
 				serviceutil.SendServerError(w, err.Error())
 			} else {
+				p.Close()
 				serviceutil.SendSuccess(w, "")
 			}
 			break

@@ -74,6 +74,11 @@ export default {
         document.getElementById("bg").style.backgroundImage =
           "url('" + music.pic + "')";
       }
+      // 刷新顶部title
+      this.$emit("on-loading", {
+        title: music.filename.getName(false),
+        loadding: false,
+      });
     },
 
     // 加载数据列表

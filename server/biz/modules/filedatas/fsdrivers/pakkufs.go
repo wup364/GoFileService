@@ -167,11 +167,15 @@ func (driver *PakkuFsDriver) GetDirNodeList(src string, limit, offset int) (resu
 			result = make([]ifiledatas.Node, len(dto.Datas))
 			for i := 0; i < len(dto.Datas); i++ {
 				result[i] = ifiledatas.Node{
-					Path:   src + "/" + dto.Datas[i].Name,
 					Mtime:  dto.Datas[i].Mtime,
 					IsFile: dto.Datas[i].Flag == 1,
 					IsDir:  dto.Datas[i].Flag == 0,
 					Size:   dto.Datas[i].Size,
+				}
+				if src == "/" {
+					result[i].Path = "/" + dto.Datas[i].Name
+				} else {
+					result[i].Path = src + "/" + dto.Datas[i].Name
 				}
 			}
 		} else {
