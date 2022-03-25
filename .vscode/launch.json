@@ -12,7 +12,7 @@
             "env": {
                 "validation-sign": "false"
             },
-            "program": "${workspaceFolder}"
+            "program": "${workspaceFolder}\\server"
         }
     ]
 }

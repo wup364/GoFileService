@@ -12,10 +12,6 @@
       <div>
         <table>
           <tr>
-            <td>正在处理:</td>
-            <td>{{ operationData.multiCount + operationData.opCount }}</td>
-          </tr>
-          <tr>
             <td width="30%">移动路径:</td>
             <td>{{ operationData.nowSrcPath }}</td>
           </tr>

@@ -34,12 +34,12 @@ func (ctl *FilePermissionCtrl) AsController() ipakku.ControllerConfig {
 		RouterConfig: ipakku.RouterConfig{
 			ToLowerCase: true,
 			HandlerFunc: [][]interface{}{
-				{"GET", ctl.ListFPermissions},
-				{"POST", ctl.GetUserPermissionSum},
-				{"GET", ctl.ListUserFPermissions},
-				{"POST", ctl.AddFPermission},
-				{"DELETE", ctl.DelFPermission},
-				{"POST", ctl.UpdateFPermission},
+				{http.MethodGet, ctl.ListFPermissions},
+				{http.MethodPost, ctl.GetUserPermissionSum},
+				{http.MethodGet, ctl.ListUserFPermissions},
+				{http.MethodPost, ctl.AddFPermission},
+				{http.MethodDelete, ctl.DelFPermission},
+				{http.MethodPost, ctl.UpdateFPermission},
 			},
 		},
 		FilterConfig: ipakku.FilterConfig{

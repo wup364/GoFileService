@@ -32,8 +32,9 @@ type StreamTokenType int
 
 // TransportToken 传输token控制
 type TransportToken interface {
-	AskWriteToken(src string) (*StreamToken, error)
-	AskReadToken(src string) (*StreamToken, error)
+	SubmitToken(token string, props map[string]interface{}) (*FNode, error)
+	AskWriteToken(src string, props map[string]interface{}) (*StreamToken, error)
+	AskReadToken(src string, props map[string]interface{}) (*StreamToken, error)
 	QueryToken(token string) (*StreamToken, error)
 	RefreshToken(token string) (st *StreamToken, err error)
 	DestroyToken(token string, override bool) (err error)
@@ -42,18 +43,19 @@ type TransportToken interface {
 // StreamToken token信息
 type StreamToken struct {
 	Token    string
+	TokenURL string
+	FsysType string
 	FilePath string
-	FileSize int64
 	CTime    int64
-	MTime    int64
 	Type     StreamTokenType
 }
 
 // StreamTokenDto token信息
 type StreamTokenDto struct {
 	Token    string `json:"token"`
+	TokenURL string `json:"tokenURL"`
+	FsysType string `json:"fsysType"`
 	FilePath string `json:"filePath"`
-	FileSize int64  `json:"fileSize"`
 	CTime    int64  `json:"cTime"`
 }
 
@@ -61,10 +63,10 @@ type StreamTokenDto struct {
 func (ua *StreamToken) Clone(val interface{}) error {
 	if st, ok := val.(*StreamToken); ok {
 		st.Token = ua.Token
+		st.TokenURL = ua.TokenURL
+		st.FsysType = ua.FsysType
 		st.FilePath = ua.FilePath
-		st.FileSize = ua.FileSize
 		st.CTime = ua.CTime
-		st.MTime = ua.MTime
 		st.Type = ua.Type
 		return nil
 	}
@@ -75,8 +77,9 @@ func (ua *StreamToken) Clone(val interface{}) error {
 func (s *StreamToken) ToDto() *StreamTokenDto {
 	return &StreamTokenDto{
 		Token:    s.Token,
+		TokenURL: s.TokenURL,
+		FsysType: s.FsysType,
 		FilePath: s.FilePath,
-		FileSize: s.FileSize,
 		CTime:    s.CTime,
 	}
 }

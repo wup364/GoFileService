@@ -16,8 +16,6 @@ import (
 	"pakku/ipakku"
 	"pakku/utils/fileutil"
 	"pakku/utils/logs"
-	"pakku/utils/strutil"
-	"time"
 )
 
 // TransportToken 文件传输token
@@ -41,39 +39,60 @@ func (n *TransportToken) Pakku() ipakku.Opts {
 }
 
 // AskWriteToken 申请写入token
-func (n *TransportToken) AskWriteToken(src string) (*service.StreamToken, error) {
-	token := strutil.GetUUID()
-	st := &service.StreamToken{
-		FilePath: src,
-		Token:    token,
-		CTime:    time.Now().UnixMilli(),
-		MTime:    time.Now().UnixMilli(),
-		Type:     service.StreamTokenType_Write,
-	}
-	if err := n.c.Set(service.CacheLib_StreamToken, token, st); nil == err {
-		return st, nil
-	} else {
+func (n *TransportToken) AskWriteToken(src string, props map[string]interface{}) (*service.StreamToken, error) {
+	if token, err := n.f.DoAskAccessToken(src, service.AccessTokenType(service.StreamTokenType_Write), props); nil != err {
 		return nil, err
+	} else {
+		st := &service.StreamToken{
+			FilePath: src,
+			Token:    token.Token,
+			CTime:    token.CTime,
+			TokenURL: token.TokenURL,
+			FsysType: token.DriverType,
+			Type:     service.StreamTokenType_Write,
+		}
+		if err := n.c.Set(service.CacheLib_StreamToken, token.Token, st); nil == err {
+			return st, nil
+		} else {
+			return nil, err
+		}
 	}
 }
 
 // AskReadToken 申请读取token
-func (n *TransportToken) AskReadToken(src string) (*service.StreamToken, error) {
+func (n *TransportToken) AskReadToken(src string, props map[string]interface{}) (*service.StreamToken, error) {
 	var node *service.FNode
 	if node = n.f.GetNode(src); nil == node || !node.IsFile {
 		return nil, fileutil.PathNotExist("askReadToken", src)
 	}
-	token := strutil.GetUUID()
-	st := &service.StreamToken{
-		Token:    token,
-		FilePath: src,
-		FileSize: node.Size,
-		CTime:    time.Now().UnixMilli(),
-		MTime:    time.Now().UnixMilli(),
-		Type:     service.StreamTokenType_Read,
+	if token, err := n.f.DoAskAccessToken(src, service.AccessTokenType(service.StreamTokenType_Read), props); nil != err {
+		return nil, err
+	} else {
+		st := &service.StreamToken{
+			FilePath: src,
+			Token:    token.Token,
+			CTime:    token.CTime,
+			TokenURL: token.TokenURL,
+			FsysType: token.DriverType,
+			Type:     service.StreamTokenType_Read,
+		}
+		if err := n.c.Set(service.CacheLib_StreamToken, token.Token, st); nil == err {
+			return st, nil
+		} else {
+			return nil, err
+		}
 	}
-	if err := n.c.Set(service.CacheLib_StreamToken, token, st); nil == err {
-		return st, nil
+}
+
+// SubmitToken 提交token
+func (n *TransportToken) SubmitToken(token string, props map[string]interface{}) (*service.FNode, error) {
+	if tokenObj, err := n.QueryToken(token); nil == err {
+		return n.f.DoSubmitToken(service.AccessToken{
+			Path:     tokenObj.FilePath,
+			Token:    tokenObj.Token,
+			CTime:    tokenObj.CTime,
+			TokenURL: tokenObj.TokenURL,
+		}, props)
 	} else {
 		return nil, err
 	}
@@ -95,7 +114,6 @@ func (n *TransportToken) QueryToken(token string) (*service.StreamToken, error) 
 // RefreshToken RefreshToken
 func (n *TransportToken) RefreshToken(token string) (st *service.StreamToken, err error) {
 	if st, err = n.QueryToken(token); nil == err {
-		st.MTime = time.Now().UnixMilli()
 		if err = n.c.Set(service.CacheLib_StreamToken, token, st); nil != err {
 			logs.Errorln(err)
 		}

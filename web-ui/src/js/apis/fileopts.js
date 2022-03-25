@@ -44,19 +44,36 @@ export const $fileopts = {
 	// 获取一个下载的Url
 	GetDownloadUrl(path) {
 		return $fileopts.GetStreamToken('download', path).then((data) => {
-			return $apitools.buildAPIURL($apitools.getSignAPIURL("/filestream/v1/read/" + data.token));
+			if (!data.tokenURL) {
+				data.tokenURL = $apitools.buildAPIURL("/filestream/v1/read/" + data.token);
+			}
+			return data;
 		});
 	},
 	// 获取一个打开的Url - 流
 	GetSteamUrl(path) {
-		return $fileopts.GetStreamToken('download', path).then((data) => {
-			return encodeURI($apitools.buildAPIURL("/filestream/v1/read/" + data.token, { action: 'stream' }));
+		return $fileopts.GetStreamToken('stream', path).then((data) => {
+			if (!data.tokenURL) {
+				data.tokenURL = $apitools.buildAPIURL("/filestream/v1/read/" + data.token);
+			}
+			return data;
 		});
 	},
 	// 获取一个上载的Url
 	GetUploadUrl(path) {
 		return $fileopts.GetStreamToken('upload', path).then((data) => {
-			return $apitools.buildAPIURL("/filestream/v1/put/" + data.token);
+			if (!data.tokenURL) {
+				data.tokenURL = $apitools.buildAPIURL("/filestream/v1/put/" + data.token);
+			}
+			return data;
+		});
+	},
+	// 获取token提交地址
+	GetSubmitTokenUrl(token, override) {
+		return $apitools.buildAPIURL("/filestream/v1/token", {
+			"type": 'submitupload',
+			"token": token ? token : '',
+			"override": override ? override : false,
 		});
 	},
 	// ---------------------------------------------

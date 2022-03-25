@@ -42,7 +42,7 @@ func TestFileDatas(t *testing.T) {
 	defer fileutil.RemoveAll(os.TempDir() + "/" + app.GetInstanceID())
 	defer fileutil.RemoveAll(os.TempDir() + "/.sys")
 	// 测试 GetDirList
-	rootdirs := fsm.GetDirList("/")
+	rootdirs := fsm.GetDirList("/", -1, -1)
 	if len(rootdirs) == 0 {
 		panic("dir: " + os.TempDir() + " is empty")
 	}
@@ -52,7 +52,7 @@ func TestFileDatas(t *testing.T) {
 	defer fsm.DoDelete(writeFile)
 	err := fsm.DoWrite(writeFile, strings.NewReader(strutil.GetUUID()))
 	checkErr(err)
-	wkdirs := fsm.GetDirList(wkdir)
+	wkdirs := fsm.GetDirList(wkdir, -1, -1)
 	if len(wkdirs) == 0 {
 		panic("DoWrite: " + writeFile + " failed")
 	}

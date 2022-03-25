@@ -12,15 +12,13 @@
 package controller
 
 import (
+	"encoding/json"
 	"fileservice/biz/modules/filedatas"
 	"fileservice/biz/service"
-	"io"
 	"net/http"
 	"pakku/ipakku"
-	"pakku/utils/logs"
 	"pakku/utils/serviceutil"
 	"pakku/utils/strutil"
-	"strconv"
 	"strings"
 )
 
@@ -39,19 +37,19 @@ func (ctl *Preview) AsController() ipakku.ControllerConfig {
 		RouterConfig: ipakku.RouterConfig{
 			ToLowerCase: true,
 			HandlerFunc: [][]interface{}{
-				{"GET", "status/:" + `[\s\S]*`, ctl.Status},
-				{"GET", ctl.Asktoken},
-				{"GET", "samedirfiles/:" + `[\s\S]*`, ctl.SameDirFiles},
-				{"ANY", "stream/:" + `[\s\S]*`, ctl.Stream},
+				{http.MethodGet, ctl.Asktoken},
+				{http.MethodGet, "status/:" + `[\s\S]*`, ctl.Status},
+				{http.MethodGet, "samedirfiles/:" + `[\s\S]*`, ctl.SameDirFiles},
+				{http.MethodPost, "samedirtoken/:" + `[\s\S]*`, ctl.AskSameDIRToken},
 			},
 		},
 		FilterConfig: ipakku.FilterConfig{
 			FilterFunc: [][]interface{}{
 				{`/:[\s\S]*`, func(rw http.ResponseWriter, r *http.Request) bool {
-					if strings.Contains(r.URL.Path, "/stream/") {
-						return true
+					if strings.Contains(r.URL.Path, "/asktoken") {
+						return ctl.um.GetAuthFilterFunc()(rw, r)
 					}
-					return ctl.um.GetAuthFilterFunc()(rw, r)
+					return true
 				}},
 			},
 		},
@@ -78,11 +76,47 @@ func (ctl *Preview) Asktoken(w http.ResponseWriter, r *http.Request) {
 	} else if !ctl.checkPermision(ctl.getUserID4Request(r), qpath, service.FPM_Read) {
 		serviceutil.SendBadRequest(w, service.ErrorPermissionInsufficient.Error())
 	} else {
-		if token, err := ctl.tt.AskReadToken(qpath); nil != err {
+		if token, err := ctl.tt.AskReadToken(qpath, nil); nil != err {
 			serviceutil.SendServerError(w, err.Error())
 		} else {
 			serviceutil.SendSuccess(w, token.Token)
 		}
+	}
+}
+
+// AskSameDIRToken 同级目录下的预览令牌申请
+func (ctl *Preview) AskSameDIRToken(w http.ResponseWriter, r *http.Request) {
+	var nameList []string
+	if qnames := r.FormValue("names"); len(qnames) == 0 {
+		serviceutil.SendBadRequest(w, ErrorOprationFailed.Error())
+		return
+	} else {
+		if err := json.Unmarshal([]byte(qnames), &nameList); nil != err {
+			serviceutil.SendBadRequest(w, err.Error())
+			return
+		} else if len(nameList) > 50 {
+			serviceutil.SendBadRequest(w, "max limit 50")
+			return
+		}
+	}
+	//
+	if token, err := ctl.getSteamToken(strutil.GetPathName(r.URL.Path)); nil != err || nil == token {
+		serviceutil.SendBadRequest(w, err.Error())
+	} else {
+		// 校验 & 获取token
+		tokenList := make(map[string]service.StreamTokenDto)
+		parent := strutil.GetPathParent(token.FilePath)
+		for i := 0; i < len(nameList); i++ {
+			if filePath := strutil.Parse2UnixPath(parent + "/" + nameList[i]); !ctl.fm.IsFile(filePath) {
+				serviceutil.SendBadRequest(w, ErrorFileNotExist.Error())
+				return
+			} else {
+				if token, err := ctl.tt.AskReadToken(filePath, nil); nil == err {
+					tokenList[nameList[i]] = *token.ToDto()
+				}
+			}
+		}
+		serviceutil.SendSuccess(w, tokenList)
 	}
 }
 
@@ -98,13 +132,13 @@ func (ctl *Preview) SameDirFiles(w http.ResponseWriter, r *http.Request) {
 		} else if !ctl.checkPermision(ctl.getUserID4Request(r), token.FilePath, service.FPM_Read) {
 			serviceutil.SendBadRequest(w, service.ErrorPermissionInsufficient.Error())
 		} else {
-			if list, err := ctl.fm.GetDirNodeList(prentPath); err != nil {
+			if list, err := ctl.fm.GetDirNodeList(prentPath, -1, -1); err != nil {
 				serviceutil.SendServerError(w, err.Error())
 			} else {
 				res := make([]service.FNodeDto, 0)
 				if len(list) > 0 {
 					for i := 0; i < len(list); i++ {
-						res = append(res, *list[i].ToDto())
+						res = append(res, list[i].ToDto())
 					}
 				}
 				//
@@ -115,46 +149,6 @@ func (ctl *Preview) SameDirFiles(w http.ResponseWriter, r *http.Request) {
 						SortField: "Path",
 					}.Sort(res),
 				})
-			}
-		}
-	}
-}
-
-// Stream 下载
-func (ctl *Preview) Stream(w http.ResponseWriter, r *http.Request) {
-	var filePath string
-	token, err := ctl.getSteamToken(strutil.GetPathName(r.URL.Path))
-	if nil != err || nil == token {
-		serviceutil.SendBadRequest(w, err.Error())
-		return
-	} else {
-		// 校验
-		parent := strutil.GetPathParent(token.FilePath)
-		if filePath = strutil.Parse2UnixPath(parent + "/" + strutil.GetPathName(r.FormValue("fileName"))); !ctl.fm.IsFile(filePath) {
-			serviceutil.SendBadRequest(w, ErrorFileNotExist.Error())
-			return
-		}
-	}
-	//
-	maxSize := ctl.fm.GetFileSize(filePath)
-	start, end, hasRange := serviceutil.GetRequestRange(r, maxSize)
-	//
-	if fr, err := ctl.fm.DoRead(filePath, start); nil != err {
-		serviceutil.SendServerError(w, err.Error())
-	} else {
-		defer fr.Close()
-		ctLength := end - start
-		if ctLength == 0 || ctLength < 0 {
-			w.WriteHeader(http.StatusNoContent)
-		} else {
-			w.Header().Set("Content-Length", strconv.Itoa(int(ctLength)))
-			if hasRange {
-				w.Header().Set("Content-Range", "bytes "+strconv.Itoa(int(start))+"-"+strconv.Itoa(int(end-1))+"/"+strconv.Itoa(int(maxSize)))
-				w.WriteHeader(http.StatusPartialContent)
-			}
-			if _, err := io.Copy(w, io.LimitReader(fr, ctLength)); nil != err && err != io.EOF {
-				logs.Errorln(err)
-				serviceutil.SendServerError(w, err.Error())
 			}
 		}
 	}

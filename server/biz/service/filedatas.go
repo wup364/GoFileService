@@ -16,6 +16,9 @@ import (
 	"io"
 )
 
+// AccessTokenType AccessTokenType
+type AccessTokenType int
+
 // FileDatas 文件数据块管理模块
 type FileDatas interface {
 	IsDir(src string) bool
@@ -24,8 +27,9 @@ type FileDatas interface {
 
 	GetNode(src string) *FNode
 	GetFileSize(src string) int64
-	GetDirList(src string) []string
-	GetDirNodeList(relativePath string) ([]FNode, error)
+	GetDirList(src string, limit int, offset int) []string
+	GetNodes(src []string, ignoreNotIsExist bool) ([]FNode, error)
+	GetDirNodeList(src string, limit int, offset int) ([]FNode, error)
 
 	DoMkDir(src string) error
 	DoDelete(src string) error
@@ -35,6 +39,9 @@ type FileDatas interface {
 
 	DoWrite(src string, ioReader io.Reader) error
 	DoRead(src string, offset int64) (io.ReadCloser, error)
+	//
+	DoAskAccessToken(src string, tokenType AccessTokenType, props map[string]interface{}) (*AccessToken, error)
+	DoSubmitToken(token AccessToken, props map[string]interface{}) (*FNode, error)
 }
 
 // FNode 文件|夹基础属性(filedatas)
@@ -47,8 +54,8 @@ type FNode struct {
 }
 
 // ToDto 转传输对象
-func (f *FNode) ToDto() *FNodeDto {
-	return &FNodeDto{
+func (f *FNode) ToDto() FNodeDto {
+	return FNodeDto{
 		Path:   f.Path,
 		Mtime:  f.Mtime,
 		IsFile: f.IsFile,
@@ -73,4 +80,13 @@ func (dto *FNodeDto) ToJSON() string {
 	} else {
 		return string(bt)
 	}
+}
+
+// AccessToken token信息
+type AccessToken struct {
+	Path       string
+	Token      string
+	TokenURL   string
+	CTime      int64
+	DriverType string
 }

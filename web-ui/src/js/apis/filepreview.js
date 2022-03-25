@@ -25,13 +25,30 @@ export const $filepreview = {
 	status(token) {
 		return $apitools.apiGet("/filepreview/v1/status/" + token);
 	},
+	// 获取预览文件的同级目录文件的token
+	samedirtoken(token, names) {
+		return new Promise((resolve, reject) => {
+			$apitools.AjaxRequest({
+				method: "POST",
+				uri: $apitools.buildAPIURL("/filepreview/v1/samedirtoken/" + token),
+				datas: {
+					names: JSON.stringify(names)
+				},
+			}).then((data) => {
+				if (data) {
+					for (let key in data) {
+						if (data[key].token && !data[key].tokenURL) {
+							data[key].tokenURL = $apitools.buildAPIURL("/filestream/v1/read/" + data[key].token);
+						}
+					}
+				}
+				resolve(data);
+			}).catch(reject);
+		});
+	},
 	// 获取预览文件的同级目录文件
 	samedirFiles(token) {
 		return $apitools.apiGet("/filepreview/v1/samedirfiles/" + token);
-	},
-	// 获取预览文件的文件流
-	buildStreamURL(token, fileName) {
-		return $apitools.buildAPIURL("/filepreview/v1/stream/" + token + "?fileName=" + encodeURIComponent(fileName ? fileName : ""));
 	},
 	// 预览
 	doPreview(path, suffix) {
@@ -60,5 +77,25 @@ export const $filepreview = {
 	isSupport(type, suffix) {
 		suffix = suffix.toLowerCase();
 		return type && suffix && $filepreview.supported[type] && $filepreview.supported[type].indexOf(suffix) > -1;
+	},
+	sync: {
+		// 获取预览文件的同级目录文件的token
+		samedirtoken(token, names) {
+			let datas = $apitools.AjaxRequestAync({
+				method: "POST",
+				uri: $apitools.buildAPIURL("/filepreview/v1/samedirtoken/" + token),
+				datas: {
+					names: JSON.stringify(names)
+				},
+			});
+			if (datas) {
+				for (let key in datas) {
+					if (datas[key].token && !datas[key].tokenURL) {
+						datas[key].tokenURL = $apitools.buildAPIURL("/filestream/v1/read/" + datas[key].token);
+					}
+				}
+			}
+			return datas;
+		},
 	}
 };

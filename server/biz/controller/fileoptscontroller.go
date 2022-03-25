@@ -37,11 +37,11 @@ func (ctl *FileOptsCtrl) AsController() ipakku.ControllerConfig {
 		RouterConfig: ipakku.RouterConfig{
 			ToLowerCase: true,
 			HandlerFunc: [][]interface{}{
-				{"GET", ctl.Info},
-				{"GET", ctl.List},
-				{"DELETE", ctl.Del},
-				{"POST", ctl.ReName},
-				{"POST", ctl.NewFolder},
+				{http.MethodGet, ctl.Info},
+				{http.MethodGet, ctl.List},
+				{http.MethodDelete, ctl.Del},
+				{http.MethodPost, ctl.ReName},
+				{http.MethodPost, ctl.NewFolder},
 			},
 		},
 		FilterConfig: ipakku.FilterConfig{
@@ -91,6 +91,8 @@ func (ctl *FileOptsCtrl) Info(w http.ResponseWriter, r *http.Request) {
 // List 查询路径下的列表以及基本信息
 func (ctl *FileOptsCtrl) List(w http.ResponseWriter, r *http.Request) {
 	qpath := r.FormValue("path")
+	qlimit := r.FormValue("limit")
+	qoffset := r.FormValue("offset")
 	qSort := r.FormValue("sort")
 	qAsc := r.FormValue("asc")
 	// fmt.Println(r.URL, r.Body, qpath)
@@ -106,7 +108,8 @@ func (ctl *FileOptsCtrl) List(w http.ResponseWriter, r *http.Request) {
 		serviceutil.SendBadRequest(w, ErrorPermissionInsufficient.Error())
 		return
 	}
-	list, err := ctl.fm.GetDirNodeList(qpath)
+
+	list, err := ctl.fm.GetDirNodeList(qpath, strutil.String2Int(qlimit, -1), strutil.String2Int(qoffset, -1))
 	if err != nil {
 		serviceutil.SendServerError(w, err.Error())
 		return
@@ -117,11 +120,11 @@ func (ctl *FileOptsCtrl) List(w http.ResponseWriter, r *http.Request) {
 	if len(list) > 0 {
 		for i := 0; i < len(list); i++ {
 			if list[i].IsFile && canVisible {
-				res = append(res, *list[i].ToDto())
+				res = append(res, list[i].ToDto())
 				continue
 			}
 			if ctl.checkPermision(userID, list[i].Path, service.FPM_VisibleChild) {
-				res = append(res, *list[i].ToDto())
+				res = append(res, list[i].ToDto())
 			}
 		}
 	}
