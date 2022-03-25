@@ -11,7 +11,7 @@ RUN mkdir /opts/fileservice/conf \
 #COPY ./conf /opts/fileservice/conf
 #COPY ./datas /opts/fileservice/datas
 COPY ./webapps /opts/fileservice/webapps
-COPY ./app.ico /opts/fileservice/app.ico
+# COPY ./app.ico /opts/fileservice/app.ico
 COPY ./fileservice /opts/fileservice/fileservice
 
 # CMD [  ]
