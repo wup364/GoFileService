@@ -38,9 +38,9 @@ func (ctl *Preview) AsController() ipakku.ControllerConfig {
 			ToLowerCase: true,
 			HandlerFunc: [][]interface{}{
 				{http.MethodGet, ctl.Asktoken},
-				{http.MethodGet, "status/:" + `[\s\S]*`, ctl.Status},
-				{http.MethodGet, "samedirfiles/:" + `[\s\S]*`, ctl.SameDirFiles},
-				{http.MethodPost, "samedirtoken/:" + `[\s\S]*`, ctl.AskSameDIRToken},
+				{http.MethodGet, "status/:[A-Za-z0-9]+$", ctl.Status},
+				{http.MethodGet, "samedirfiles/:[A-Za-z0-9]+$", ctl.SameDirFiles},
+				{http.MethodPost, "samedirtoken/:[A-Za-z0-9]+$", ctl.AskSameDIRToken},
 			},
 		},
 		FilterConfig: ipakku.FilterConfig{
