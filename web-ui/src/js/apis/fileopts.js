@@ -45,7 +45,7 @@ export const $fileopts = {
 	GetDownloadUrl(path) {
 		return $fileopts.GetStreamToken('download', path).then((data) => {
 			if (!data.tokenURL) {
-				data.tokenURL = $apitools.buildAPIURL("/filestream/v1/read/" + data.token);
+				data.tokenURL = $apitools.buildAPIURL("/filestream/v1/read/" + data.token + "?name=" + path.getName());
 			}
 			return data;
 		});
