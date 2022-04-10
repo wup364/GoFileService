@@ -295,45 +295,6 @@ func (fns *FileDatas) GetDirNodeList(relativePath string, limit int, offset int)
 	return res, err
 }
 
-// DoAskAccessToken 获取一个访问token
-func (fns *FileDatas) DoAskAccessToken(src string, tokenType service.AccessTokenType, props map[string]interface{}) (*service.AccessToken, error) {
-	if fs, err := fns.getPathDriver(src); nil != err {
-		return nil, err
-	} else {
-
-		if token, err := fs.DoAskAccessToken(src, ifiledatas.AccessTokenType(tokenType), props); nil == err {
-			return &service.AccessToken{
-				Path:       src,
-				Token:      token.Token,
-				CTime:      token.CTime,
-				TokenURL:   token.TokenURL,
-				DriverType: fs.GetDriverType(),
-			}, nil
-		} else {
-			return nil, err
-		}
-	}
-}
-
-// DoSubmitToken 提交令牌
-func (fns *FileDatas) DoSubmitToken(token service.AccessToken, props map[string]interface{}) (*service.FNode, error) {
-	if fs, err := fns.getPathDriver(token.Path); nil != err {
-		return nil, err
-	} else {
-		if node, err := fs.DoSubmitToken(token.Token, props); nil == err {
-			return &service.FNode{
-				Path:   token.Path,
-				Mtime:  node.Mtime,
-				IsFile: node.IsFile,
-				IsDir:  node.IsDir,
-				Size:   node.Size,
-			}, nil
-		} else {
-			return nil, err
-		}
-	}
-}
-
 // groupPathByDriver 根据驱动类型分类
 func (fns *FileDatas) groupPathByDriver(srcList []string) (map[string][]string, error) {
 	result := make(map[string][]string)

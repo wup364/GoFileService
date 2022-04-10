@@ -16,6 +16,8 @@ import (
 	"pakku/ipakku"
 	"pakku/utils/fileutil"
 	"pakku/utils/logs"
+	"pakku/utils/strutil"
+	"time"
 )
 
 // TransportToken 文件传输token
@@ -40,22 +42,16 @@ func (n *TransportToken) Pakku() ipakku.Opts {
 
 // AskWriteToken 申请写入token
 func (n *TransportToken) AskWriteToken(src string, props map[string]interface{}) (*service.StreamToken, error) {
-	if token, err := n.f.DoAskAccessToken(src, service.AccessTokenType(service.StreamTokenType_Write), props); nil != err {
-		return nil, err
+	st := &service.StreamToken{
+		FilePath: src,
+		Token:    strutil.GetUUID(),
+		CTime:    time.Now().UnixMilli(),
+		Type:     service.StreamTokenType_Write,
+	}
+	if err := n.c.Set(service.CacheLib_StreamToken, st.Token, st); nil == err {
+		return st, nil
 	} else {
-		st := &service.StreamToken{
-			FilePath: src,
-			Token:    token.Token,
-			CTime:    token.CTime,
-			TokenURL: token.TokenURL,
-			FsysType: token.DriverType,
-			Type:     service.StreamTokenType_Write,
-		}
-		if err := n.c.Set(service.CacheLib_StreamToken, token.Token, st); nil == err {
-			return st, nil
-		} else {
-			return nil, err
-		}
+		return nil, err
 	}
 }
 
@@ -65,34 +61,14 @@ func (n *TransportToken) AskReadToken(src string, props map[string]interface{}) 
 	if node = n.f.GetNode(src); nil == node || !node.IsFile {
 		return nil, fileutil.PathNotExist("askReadToken", src)
 	}
-	if token, err := n.f.DoAskAccessToken(src, service.AccessTokenType(service.StreamTokenType_Read), props); nil != err {
-		return nil, err
-	} else {
-		st := &service.StreamToken{
-			FilePath: src,
-			Token:    token.Token,
-			CTime:    token.CTime,
-			TokenURL: token.TokenURL,
-			FsysType: token.DriverType,
-			Type:     service.StreamTokenType_Read,
-		}
-		if err := n.c.Set(service.CacheLib_StreamToken, token.Token, st); nil == err {
-			return st, nil
-		} else {
-			return nil, err
-		}
+	st := &service.StreamToken{
+		FilePath: src,
+		Token:    strutil.GetUUID(),
+		CTime:    time.Now().UnixMilli(),
+		Type:     service.StreamTokenType_Read,
 	}
-}
-
-// SubmitToken 提交token
-func (n *TransportToken) SubmitToken(token string, props map[string]interface{}) (*service.FNode, error) {
-	if tokenObj, err := n.QueryToken(token); nil == err {
-		return n.f.DoSubmitToken(service.AccessToken{
-			Path:     tokenObj.FilePath,
-			Token:    tokenObj.Token,
-			CTime:    tokenObj.CTime,
-			TokenURL: tokenObj.TokenURL,
-		}, props)
+	if err := n.c.Set(service.CacheLib_StreamToken, st.Token, st); nil == err {
+		return st, nil
 	} else {
 		return nil, err
 	}

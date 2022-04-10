@@ -32,7 +32,6 @@ type StreamTokenType int
 
 // TransportToken 传输token控制
 type TransportToken interface {
-	SubmitToken(token string, props map[string]interface{}) (*FNode, error)
 	AskWriteToken(src string, props map[string]interface{}) (*StreamToken, error)
 	AskReadToken(src string, props map[string]interface{}) (*StreamToken, error)
 	QueryToken(token string) (*StreamToken, error)
@@ -44,7 +43,6 @@ type TransportToken interface {
 type StreamToken struct {
 	Token    string
 	TokenURL string
-	FsysType string
 	FilePath string
 	CTime    int64
 	Type     StreamTokenType
@@ -54,7 +52,6 @@ type StreamToken struct {
 type StreamTokenDto struct {
 	Token    string `json:"token"`
 	TokenURL string `json:"tokenURL"`
-	FsysType string `json:"fsysType"`
 	FilePath string `json:"filePath"`
 	CTime    int64  `json:"cTime"`
 }
@@ -64,7 +61,6 @@ func (ua *StreamToken) Clone(val interface{}) error {
 	if st, ok := val.(*StreamToken); ok {
 		st.Token = ua.Token
 		st.TokenURL = ua.TokenURL
-		st.FsysType = ua.FsysType
 		st.FilePath = ua.FilePath
 		st.CTime = ua.CTime
 		st.Type = ua.Type
@@ -78,7 +74,6 @@ func (s *StreamToken) ToDto() *StreamTokenDto {
 	return &StreamTokenDto{
 		Token:    s.Token,
 		TokenURL: s.TokenURL,
-		FsysType: s.FsysType,
 		FilePath: s.FilePath,
 		CTime:    s.CTime,
 	}

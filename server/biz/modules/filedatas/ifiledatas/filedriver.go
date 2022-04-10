@@ -44,9 +44,6 @@ type FileDriver interface {
 	// 流操作
 	DoWrite(src string, ioReader io.Reader) error
 	DoRead(src string, offset int64) (io.ReadCloser, error)
-	//
-	DoAskAccessToken(src string, tokenType AccessTokenType, props map[string]interface{}) (*AccessToken, error)
-	DoSubmitToken(token string, props map[string]interface{}) (*Node, error)
 }
 
 // Node 文件|夹基础属性

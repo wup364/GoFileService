@@ -126,7 +126,7 @@ func (ctl *TransportCtrl) PostToken(w http.ResponseWriter, r *http.Request) {
 	var result interface{}
 	var err error
 	if qtype == "submitupload" {
-		result, err = ctl.tt.SubmitToken(r.FormValue("token"), map[string]interface{}{"override": strutil.String2Bool(r.FormValue("override"))})
+		err = ErrorNotSupport
 	} else {
 		err = ErrorNotSupport
 	}
