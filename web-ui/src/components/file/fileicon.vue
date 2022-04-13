@@ -123,6 +123,7 @@ export default {
       return iconUrl(path);
     },
     initvalue() {
+      this.isEditMode = this.editMode;
       this.filename = this.node.path.getName();
       this.icon = this.getFileIcon(this.filename);
     },
