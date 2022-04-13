@@ -44,27 +44,18 @@ export const $fileopts = {
 	// 获取一个下载的Url
 	GetDownloadUrl(path) {
 		return $fileopts.GetStreamToken('download', path).then((data) => {
-			if (!data.tokenURL) {
-				data.tokenURL = $apitools.buildAPIURL("/filestream/v1/read/" + data.token + "?name=" + path.getName());
-			}
 			return data;
 		});
 	},
 	// 获取一个打开的Url - 流
 	GetSteamUrl(path) {
 		return $fileopts.GetStreamToken('stream', path).then((data) => {
-			if (!data.tokenURL) {
-				data.tokenURL = $apitools.buildAPIURL("/filestream/v1/read/" + data.token);
-			}
 			return data;
 		});
 	},
 	// 获取一个上载的Url
 	GetUploadUrl(path) {
 		return $fileopts.GetStreamToken('upload', path).then((data) => {
-			if (!data.tokenURL) {
-				data.tokenURL = $apitools.buildAPIURL("/filestream/v1/put/" + data.token);
-			}
 			return data;
 		});
 	},

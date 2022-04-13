@@ -19,6 +19,7 @@ import (
 	"net"
 	"net/http"
 	"pakku/ipakku"
+	"pakku/utils/httpclient"
 	"pakku/utils/logs"
 	"pakku/utils/serviceutil"
 	"pakku/utils/strutil"
@@ -94,19 +95,25 @@ func (ctl *TransportCtrl) GetToken(w http.ResponseWriter, r *http.Request) {
 		if !ctl.checkPermision(ctl.getUserID4Request(r), qdata, service.FPM_Read) {
 			err = ErrorPermissionInsufficient
 		} else {
-			token, err = ctl.tt.AskReadToken(qdata, nil)
+			if token, err = ctl.tt.AskReadToken(qdata, nil); nil == err {
+				token.TokenURL = "/filestream/v1/read/" + token.Token
+			}
 		}
 	} else if qtype == "download" {
 		if !ctl.checkPermision(ctl.getUserID4Request(r), qdata, service.FPM_Read) {
 			err = ErrorPermissionInsufficient
 		} else {
-			token, err = ctl.tt.AskReadToken(qdata, map[string]string{"name": strutil.GetPathName(qdata)})
+			if token, err = ctl.tt.AskReadToken(qdata, nil); nil == err {
+				token.TokenURL = httpclient.BuildURLWithArray("/filestream/v1/read/"+token.Token, [][]string{{"name", strutil.GetPathName(qdata)}})
+			}
 		}
 	} else if qtype == "upload" {
 		if !ctl.checkPermision(ctl.getUserID4Request(r), qdata, service.FPM_Write) {
 			err = ErrorPermissionInsufficient
 		} else {
-			token, err = ctl.tt.AskWriteToken(qdata, nil)
+			if token, err = ctl.tt.AskWriteToken(qdata, nil); nil == err {
+				token.TokenURL = "/filestream/v1/put/" + token.Token
+			}
 		}
 	} else {
 		err = ErrorNotSupport

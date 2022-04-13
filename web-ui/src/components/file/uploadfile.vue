@@ -139,7 +139,7 @@ export default {
           return;
         }
         // file._upload.index = this.dindex-1;
-        let opts = {
+        let uploadConf = {
           method: "PUT",
           form: {},
           header: {},
@@ -171,20 +171,21 @@ export default {
         $fileopts
           .GetUploadUrl(file._upload.base + "/" + file.name)
           .then((data) => {
-            data.submiturl = $fileopts.GetSubmitTokenUrl(data.token, true);
             file._upload.updater = $fileupload.upload(
-              data.fsysType,
-              data.tokenURL,
-              data.submiturl,
-              file,
-              opts
+              {
+                file: file,
+                uploadMethod: "",
+                streamURL: data.tokenURL ? data.tokenURL : "",
+                submitURL: data.submitURL ? data.submitURL : "",
+              },
+              uploadConf
             );
             file._upload.updater.start();
           })
           .catch((err) => {
             console.error(err);
-            opts.error(err);
-            opts.loadend();
+            uploadConf.error(err);
+            uploadConf.loadend();
           });
       }
     },
