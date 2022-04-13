@@ -405,22 +405,6 @@ func (locl *LocalDriver) DoWrite(relativePath string, ioReader io.Reader) error 
 	return locl.wrapError(relativePath, "", cpErr)
 }
 
-// DoAskAccessToken 申请访问Token
-func (locl *LocalDriver) DoAskAccessToken(src string, tokenType ifiledatas.AccessTokenType, props map[string]interface{}) (*ifiledatas.AccessToken, error) {
-	if tokenType == ifiledatas.AccessTokenType_Read && !locl.IsExist(src) {
-		return nil, fileutil.PathNotExist("AskAccessToken", src)
-	}
-	return &ifiledatas.AccessToken{
-		Token: strutil.GetUUID(),
-		CTime: time.Now().UnixMilli(),
-	}, nil
-}
-
-// DoSubmitToken 递交令牌
-func (driver *LocalDriver) DoSubmitToken(token string, props map[string]interface{}) (*ifiledatas.Node, error) {
-	return nil, nil
-}
-
 // getAbsolutePath (mnode, 虚拟路径)(绝对位置, 挂载位置, 错误)处理路径拼接
 func (locl *LocalDriver) getAbsolutePath(mtn *ifiledatas.MountNode, relativePath string) (abs string, rlPath string, err error) {
 	rlPath = relativePath

@@ -16,9 +16,9 @@ import (
 	"fileservice/biz/modules/bootstart"
 	"fileservice/biz/modules/filedatas"
 	"fileservice/biz/modules/filepermission"
+	"fileservice/biz/modules/filetransport"
 	"fileservice/biz/modules/htmlpage"
 	"fileservice/biz/modules/user4rpc"
-	"fileservice/biz/serviceimpl"
 	"fileservice/pakkusys"
 	"pakku/ipakku"
 )
@@ -28,7 +28,7 @@ func RegisterModules() []ipakku.Template {
 	return []ipakku.Template{
 		new(user4rpc.User4RPC),
 		new(filedatas.FileDatas),
-		new(serviceimpl.TransportToken),
+		new(filetransport.TransportToken),
 		new(filepermission.FilePermission),
 		new(asynctask.AsyncTask),
 		new(htmlpage.HTMLPage),

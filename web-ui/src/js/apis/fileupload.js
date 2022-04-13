@@ -13,16 +13,19 @@ export const $fileupload = {
 	opts: {
 		chunkSize: 128 * 1024 * 1024,
 	},
-	upload(fstype, streamurl, submiturl, file, ctrl) {
-		if (fstype == "PAKKUFS" || fstype == "pakkufs") {
-			return this.upload4pakkufs(streamurl, submiturl, file, ctrl);
+
+	// upload 
+	upload(opts, ctrl) {
+		let _opts = Object.assign({ uploadMethod: '', streamURL: '', submitURL: '', file: null }, opts);
+		if (_opts.uploadMethod == "chunkUploader") {
+			return this.chunkUploader(_opts.streamURL, _opts.submitURL, _opts.file, ctrl);
 		} else {
-			return this.uploadByFormData(streamurl, file, ctrl);
+			return this.formDataUploader(_opts.streamURL, _opts.file, ctrl);
 		}
 	},
 
-	// pakkufs upload
-	upload4pakkufs(streamurl, submiturl, file, ctrl) {
+	// chunkUploader 分片上传器
+	chunkUploader(streamurl, submiturl, file, ctrl) {
 		let uploader = {
 			loadSize: 0,
 			aborted: false,
@@ -69,7 +72,7 @@ export const $fileupload = {
 		// 分片
 		let doUpload = (chunck) => {
 			let chunckURL = this.buildParams(streamurl, { number: ++uploader.currentChunckNum });
-			uploader.currentUploader = this.uploadByFormData(chunckURL, chunck, {
+			uploader.currentUploader = this.formDataUploader(chunckURL, chunck, {
 				filekey: "file",
 				method: uploader.opts.method,
 				header: uploader.opts.header,
@@ -141,17 +144,15 @@ export const $fileupload = {
 			uploader.currentUploader.start();
 		}
 
-		// 上传单片&触发事件
-		// 循环分片, 直至结束
 		return uploader;
 	},
 	buildParams(url, params) {
 		if (params) {
 			let payloads = [];
 			let keys = Object.keys(params);
-			for (let i = 0; i < keys.length; i++) {
-				if (undefined !== params[keys[i]]) {
-					payloads.push(keys[i] + "=" + encodeURIComponent(params[keys[i]]));
+			for (const element of keys) {
+				if (undefined !== params[element]) {
+					payloads.push(element + "=" + encodeURIComponent(params[element]));
 				}
 			}
 			url = url + "?" + payloads.join("&");
@@ -174,8 +175,8 @@ export const $fileupload = {
 		}
 		return file.slice(file._cute._start, file._cute._end);
 	},
-	// From表单POST上传
-	uploadByFormData(url, file, ctrl) {
+	// Form表单POST上传
+	formDataUploader(url, file, ctrl) {
 		let uploader = {
 			ctrl: {
 				filekey: file.name ? file.name : "file",
@@ -312,10 +313,10 @@ export const $fileupload = {
 		if (keys.length > 0) {
 			keys = keys.sort();
 			let payloads = []; let payloads_encode = [];
-			for (let i = 0; i < keys.length; i++) {
-				let val = paramsmap[keys[i]];
-				payloads.push(keys[i] + "=" + val);
-				payloads_encode.push(keys[i] + "=" + encodeURIComponent(val));
+			for (const element of keys) {
+				let val = paramsmap[element];
+				payloads.push(element + "=" + val);
+				payloads_encode.push(element + "=" + encodeURIComponent(val));
 			}
 			payload = payloads.join("&");
 			payload_encode = payloads_encode.join("&");

@@ -16,7 +16,6 @@ import (
 	"fileservice/biz/modules/filedatas/ifiledatas"
 	"io"
 	"opensdk"
-	"pakku/utils/fileutil"
 	"pakku/utils/logs"
 	"pakku/utils/strutil"
 	"path/filepath"
@@ -354,89 +353,36 @@ func (driver *PakkuFsDriver) copyNodes(src, dest string, replace bool) (err erro
 }
 
 // DoRead 读取文件, 需要手动关闭流
-func (driver *PakkuFsDriver) DoRead(relativePath string, offset int64) (io.ReadCloser, error) {
-	return nil, errors.New("unsupported")
-}
-
-// DoWrite 写入文件， 先写入临时位置, 然后移动到正确位置
-func (driver *PakkuFsDriver) DoWrite(relativePath string, ioReader io.Reader) error {
-	if ioReader == nil {
-		return driver.wrapError(relativePath, "", errors.New("IO Reader is nil"))
-	}
-	return errors.New("unsupported")
-}
-
-// DoAskAccessToken 申请访问Token
-func (driver *PakkuFsDriver) DoAskAccessToken(src string, tokenType ifiledatas.AccessTokenType, props map[string]interface{}) (*ifiledatas.AccessToken, error) {
+func (driver *PakkuFsDriver) DoRead(src string, offset int64) (reader io.ReadCloser, e error) {
 	absSrc, _, err := driver.getAbsolutePath(driver.mtn, src)
 	if nil != err {
 		return nil, err
 	}
-	if tokenType == ifiledatas.AccessTokenType_Read {
-		if ok, err := driver.sdk.IsExist(absSrc); !ok || err != nil {
-			return nil, fileutil.PathNotExist("AskAccessToken", src)
-		}
-		if token, err := driver.sdk.DoAskReadToken(absSrc); nil == err {
-			if url, err := driver.sdk.GetReadStreamURL(token.NodeNo, token.Token, token.EndPoint); nil == err {
-				if len(props) > 0 {
-					if val, ok := props["name"]; ok && len(val.(string)) > 0 {
-						url += "?name=" + val.(string)
-					}
-				}
-				return &ifiledatas.AccessToken{
-					Token:    token.Token,
-					CTime:    token.CTime,
-					TokenURL: url,
-				}, nil
-			} else {
-				return nil, err
-			}
-		} else {
-			return nil, err
-		}
-	} else if tokenType == ifiledatas.AccessTokenType_Write {
-		if token, err := driver.sdk.DoAskWriteToken(absSrc); nil == err {
-			if url, err := driver.sdk.GetWriteStreamURL(token.NodeNo, token.Token, token.EndPoint); nil == err {
-				return &ifiledatas.AccessToken{
-					Token:    token.Token,
-					CTime:    token.CTime,
-					TokenURL: url,
-				}, nil
-			} else {
-				return nil, err
-			}
-		} else {
-			return nil, err
-		}
-	} else {
-		return nil, errors.New("unsupported token type")
+	var token *opensdk.StreamToken
+	if token, e = driver.sdk.DoAskReadToken(absSrc); nil == e {
+		reader, e = driver.sdk.DoReadToken(token.NodeNo, token.Token, token.EndPoint, offset)
 	}
+	return reader, e
 }
 
-// DoSubmitToken 递交令牌
-func (driver *PakkuFsDriver) DoSubmitToken(token string, props map[string]interface{}) (*ifiledatas.Node, error) {
-	override := false
-	if len(props) > 0 {
-		if val, ok := props["override"]; ok {
-			if nvl, ok := val.(bool); ok {
-				override = nvl
-			} else if nvl, ok := val.(string); ok {
-				override = strutil.String2Bool(nvl)
-			}
+// DoWrite 写入文件， 先写入临时位置, 然后移动到正确位置
+func (driver *PakkuFsDriver) DoWrite(src string, ioReader io.Reader) error {
+	if ioReader == nil {
+		return driver.wrapError(src, "", errors.New("IO Reader is nil"))
+	}
+	absSrc, _, err := driver.getAbsolutePath(driver.mtn, src)
+	if nil != err {
+		return err
+	}
+	if token, err := driver.sdk.DoAskWriteToken(absSrc); nil == err {
+		if err = opensdk.TokenWriter(ioReader, token, 128*1024*1024, driver.sdk.DoWriteToken); nil != err {
+			return err
+		}
+		if _, err := driver.sdk.DoSubmitWriteToken(token.Token, true); nil != err {
+			return err
 		}
 	}
-	if node, err := driver.sdk.DoSubmitWriteToken(token, override); nil == err {
-		return &ifiledatas.Node{
-			// Path:   "", // TODO Path
-			Mtime:  node.Mtime,
-			IsFile: node.Flag == 1,
-			IsDir:  node.Flag == 0,
-			Size:   node.Size,
-		}, nil
-
-	} else {
-		return nil, err
-	}
+	return nil
 }
 
 // getAbsolutePath (mnode, 虚拟路径)(绝对位置, 挂载位置, 错误)处理路径拼接

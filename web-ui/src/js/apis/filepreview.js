@@ -35,13 +35,6 @@ export const $filepreview = {
 					names: JSON.stringify(names)
 				},
 			}).then((data) => {
-				if (data) {
-					for (let key in data) {
-						if (data[key].token && !data[key].tokenURL) {
-							data[key].tokenURL = $apitools.buildAPIURL("/filestream/v1/read/" + data[key].token);
-						}
-					}
-				}
 				resolve(data);
 			}).catch(reject);
 		});
@@ -53,14 +46,15 @@ export const $filepreview = {
 	// 预览
 	doPreview(path, suffix) {
 		return new Promise((resolve, reject) => {
+			let ptype = $filepreview.getPreviewType(suffix ? suffix.toLowerCase() : path.getSuffixed(false).toLowerCase());
 			$filepreview.askToken(path).then((data) => {
-				$filepreview.openPreview(data, suffix ? suffix.toLowerCase() : path.getSuffixed(false).toLowerCase());
+				setTimeout(() => { window.open("#/preview/" + ptype + "?token=" + data); });
 				resolve();
 			}).catch(reject);
 		});
 	},
-	// 打开预览地址
-	openPreview(token, suffix) {
+	// 获取预览类型
+	getPreviewType(suffix) {
 		let type = '';
 		if ($filepreview.isSupport('audio', suffix)) {
 			type = 'audio';
@@ -69,9 +63,9 @@ export const $filepreview = {
 		} else if ($filepreview.isSupport('picture', suffix)) {
 			type = 'picture';
 		} else {
-			throw "不支持预览该文件";
+			throw new Error("不支持预览该文件");
 		}
-		window.open("#/preview/" + type + "?token=" + token);
+		return type;
 	},
 	// 是否是支持的播放类型
 	isSupport(type, suffix) {
@@ -81,21 +75,13 @@ export const $filepreview = {
 	sync: {
 		// 获取预览文件的同级目录文件的token
 		samedirtoken(token, names) {
-			let datas = $apitools.AjaxRequestAync({
+			return $apitools.AjaxRequestAync({
 				method: "POST",
 				uri: $apitools.buildAPIURL("/filepreview/v1/samedirtoken/" + token),
 				datas: {
 					names: JSON.stringify(names)
 				},
 			});
-			if (datas) {
-				for (let key in datas) {
-					if (datas[key].token && !datas[key].tokenURL) {
-						datas[key].tokenURL = $apitools.buildAPIURL("/filestream/v1/read/" + datas[key].token);
-					}
-				}
-			}
-			return datas;
 		},
 	}
 };

@@ -112,6 +112,7 @@ func (ctl *Preview) AskSameDIRToken(w http.ResponseWriter, r *http.Request) {
 				return
 			} else {
 				if token, err := ctl.tt.AskReadToken(filePath, nil); nil == err {
+					token.TokenURL = "/filestream/v1/read/" + token.Token
 					tokenList[nameList[i]] = *token.ToDto()
 				}
 			}
