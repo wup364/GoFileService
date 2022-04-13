@@ -12,8 +12,8 @@ import { $apitools } from "./apitools";
 "use strict";
 export const $userApi = {
 	$TYPES: {
-		1: "管理员",
-		0: "普通用户",
+		0: "管理员",
+		1: "普通用户",
 	},
 	// 登录
 	login(user, pwd) {
