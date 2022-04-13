@@ -12,9 +12,11 @@
 package controller
 
 import (
+	"fileservice/biz/modules/filetransport"
 	"fileservice/biz/service"
 	"io"
 	"mime/multipart"
+	"net"
 	"net/http"
 	"pakku/ipakku"
 	"pakku/utils/logs"
@@ -98,7 +100,7 @@ func (ctl *TransportCtrl) GetToken(w http.ResponseWriter, r *http.Request) {
 		if !ctl.checkPermision(ctl.getUserID4Request(r), qdata, service.FPM_Read) {
 			err = ErrorPermissionInsufficient
 		} else {
-			token, err = ctl.tt.AskReadToken(qdata, map[string]interface{}{"name": strutil.GetPathName(qdata)})
+			token, err = ctl.tt.AskReadToken(qdata, map[string]string{"name": strutil.GetPathName(qdata)})
 		}
 	} else if qtype == "upload" {
 		if !ctl.checkPermision(ctl.getUserID4Request(r), qdata, service.FPM_Write) {
@@ -214,15 +216,11 @@ func (ctl *TransportCtrl) Read(w http.ResponseWriter, r *http.Request) {
 	if nil != err || nil == token {
 		serviceutil.SendBadRequest(w, err.Error())
 		return
-	} else {
-		// 校验
-		if !ctl.fm.IsFile(token.FilePath) {
-			serviceutil.SendBadRequest(w, ErrorFileNotExist.Error())
-			return
-		} else {
-			// 刷新token, 使其不过期
-			ctl.tt.RefreshToken(qToken)
-		}
+	}
+	// 校验
+	if !ctl.fm.IsFile(token.FilePath) {
+		serviceutil.SendBadRequest(w, ErrorFileNotExist.Error())
+		return
 	}
 	// name
 	if name := r.FormValue("name"); len(name) > 0 {
@@ -246,7 +244,12 @@ func (ctl *TransportCtrl) Read(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("Content-Range", "bytes "+strconv.Itoa(int(start))+"-"+strconv.Itoa(int(end-1))+"/"+strconv.Itoa(int(maxSize)))
 				w.WriteHeader(http.StatusPartialContent)
 			}
-			if _, err := io.Copy(w, io.LimitReader(fr, ctLength)); nil != err && err != io.EOF {
+			if _, err := io.Copy(w, filetransport.NewTokenReaderWarp(token, io.LimitReader(fr, ctLength), ctl.tt)); nil != err && err != io.EOF {
+				if opErr, ok := err.(*net.OpError); ok && nil != opErr.Err {
+					if opErr, ok = opErr.Err.(*net.OpError); ok && opErr.Op == "write" {
+						return
+					}
+				}
 				logs.Errorln(err)
 				serviceutil.SendServerError(w, err.Error())
 			}
