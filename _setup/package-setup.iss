@@ -2,7 +2,7 @@
 AppName=File Service
 AppVerName=FileService
 VersionInfoVersion=1.1.0  
-VersionInfoTextVersion=2022-04-13
+VersionInfoTextVersion=2022-04-14
 LicenseFile=package-info\license.txt
 DefaultDirName={code:getInstallDir}
 DefaultGroupName=FileService
