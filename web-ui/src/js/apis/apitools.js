@@ -41,9 +41,9 @@ export const $apitools = {
 		if (params) {
 			let payloads = [];
 			let keys = Object.keys(params);
-			for (let i = 0; i < keys.length; i++) {
-				if (undefined !== params[keys[i]]) {
-					payloads.push(keys[i] + "=" + encodeURIComponent(params[keys[i]]));
+			for (const element of keys) {
+				if (undefined !== params[element]) {
+					payloads.push(element + "=" + encodeURIComponent(params[element]));
 				}
 			}
 			rurl = rurl + "?" + payloads.join("&");
@@ -70,10 +70,10 @@ export const $apitools = {
 		let keys = Object.keys(paramsmap);
 		if (keys.length > 0) {
 			keys = keys.sort();
-			for (let i = 0; i < keys.length; i++) {
-				let val = paramsmap[keys[i]];
-				payloads.push(keys[i] + "=" + val);
-				payloads_encode.push(keys[i] + "=" + encodeURIComponent(val));
+			for (const element of keys) {
+				let val = paramsmap[element];
+				payloads.push(element + "=" + val);
+				payloads_encode.push(element + "=" + encodeURIComponent(val));
 			}
 		}
 		if (payloads.length > 0) {
