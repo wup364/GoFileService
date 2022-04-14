@@ -230,7 +230,6 @@ export default {
           title: "文件名称",
           key: "path",
           render(h, params) {
-            console.log(params.row);
             return h(fileicon, {
               props: {
                 node: params.row,

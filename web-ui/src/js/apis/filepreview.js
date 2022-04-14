@@ -35,7 +35,7 @@ export const $filepreview = {
 					names: JSON.stringify(names)
 				},
 			}).then((data) => {
-				resolve(data);
+				resolve($filepreview.doBuildStreamURL(data));
 			}).catch(reject);
 		});
 	},
@@ -72,16 +72,27 @@ export const $filepreview = {
 		suffix = suffix.toLowerCase();
 		return type && suffix && $filepreview.supported[type] && $filepreview.supported[type].indexOf(suffix) > -1;
 	},
+	// build Stream URL
+	doBuildStreamURL(datas) {
+		if (datas) {
+			for (let key in datas) {
+				if (datas[key].tokenURL) {
+					datas[key].tokenURL = $apitools.buildAPIURL(datas[key].tokenURL);
+				}
+			}
+		}
+		return datas;
+	},
 	sync: {
 		// 获取预览文件的同级目录文件的token
 		samedirtoken(token, names) {
-			return $apitools.AjaxRequestAync({
+			return $filepreview.doBuildStreamURL($apitools.AjaxRequestAync({
 				method: "POST",
 				uri: $apitools.buildAPIURL("/filepreview/v1/samedirtoken/" + token),
 				datas: {
 					names: JSON.stringify(names)
 				},
-			});
+			}));
 		},
 	}
 };

@@ -44,19 +44,19 @@ export const $fileopts = {
 	// 获取一个下载的Url
 	GetDownloadUrl(path) {
 		return $fileopts.GetStreamToken('download', path).then((data) => {
-			return data;
+			return $fileopts.doBuildStreamURL(data);
 		});
 	},
 	// 获取一个打开的Url - 流
 	GetSteamUrl(path) {
 		return $fileopts.GetStreamToken('stream', path).then((data) => {
-			return data;
+			return $fileopts.doBuildStreamURL(data);
 		});
 	},
 	// 获取一个上载的Url
 	GetUploadUrl(path) {
 		return $fileopts.GetStreamToken('upload', path).then((data) => {
-			return data;
+			return $fileopts.doBuildStreamURL(data);
 		});
 	},
 	// 获取token提交地址
@@ -66,6 +66,13 @@ export const $fileopts = {
 			"token": token ? token : '',
 			"override": override ? override : false,
 		});
+	},
+	// build Stream URL
+	doBuildStreamURL(data) {
+		if (data && data.tokenURL) {
+			data.tokenURL = $apitools.buildAPIURL(data.tokenURL);
+		}
+		return data;
 	},
 	// ---------------------------------------------
 	// 异步执行一个动作
