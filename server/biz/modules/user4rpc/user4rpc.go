@@ -26,8 +26,8 @@ type User4RPC struct {
 	c  ipakku.AppConfig `@autowired:"AppConfig"`
 }
 
-// Pakku 模块加载器接口实现, 返回模块信息&配置
-func (umg *User4RPC) Pakku() ipakku.Opts {
+// AsModule 模块加载器接口实现, 返回模块信息&配置
+func (umg *User4RPC) AsModule() ipakku.Opts {
 	return ipakku.Opts{
 		Name:        "User4RPC",
 		Version:     1.0,

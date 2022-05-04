@@ -27,8 +27,8 @@ type FilePermission struct {
 	conf ipakku.AppConfig `@autowired:"AppConfig"`
 }
 
-// Pakku 模块加载器接口实现, 返回模块信息&配置
-func (fpms *FilePermission) Pakku() ipakku.Opts {
+// AsModule 模块加载器接口实现, 返回模块信息&配置
+func (fpms *FilePermission) AsModule() ipakku.Opts {
 	return ipakku.Opts{
 		Name:        "FilePermission",
 		Version:     1.0,

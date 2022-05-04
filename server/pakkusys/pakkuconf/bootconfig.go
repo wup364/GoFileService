@@ -24,8 +24,8 @@ import (
 )
 
 // RegisterModules 注册需要加载的模块
-func RegisterModules() []ipakku.Template {
-	return []ipakku.Template{
+func RegisterModules() []ipakku.Module {
+	return []ipakku.Module{
 		new(user4rpc.User4RPC),
 		new(filedatas.FileDatas),
 		new(filetransport.TransportToken),
@@ -37,8 +37,8 @@ func RegisterModules() []ipakku.Template {
 }
 
 // RegisterController 注册需要加载的controller
-func RegisterController() []ipakku.AsController {
-	return []ipakku.AsController{
+func RegisterController() []ipakku.Controller {
+	return []ipakku.Controller{
 		new(controller.UserCtrl),
 		new(controller.FileOptsCtrl),
 		new(controller.AsyncTaskCtrl),

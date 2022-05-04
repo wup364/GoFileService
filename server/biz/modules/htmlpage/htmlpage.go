@@ -29,8 +29,8 @@ type HTMLPage struct {
 	sv     ipakku.AppService `@autowired:"AppService"`
 }
 
-// Pakku 模块加载器接口实现, 返回模块信息&配置
-func (html *HTMLPage) Pakku() ipakku.Opts {
+// AsModule 模块加载器接口实现, 返回模块信息&配置
+func (html *HTMLPage) AsModule() ipakku.Opts {
 	return ipakku.Opts{
 		Name:        "HTMLPage",
 		Version:     1.0,

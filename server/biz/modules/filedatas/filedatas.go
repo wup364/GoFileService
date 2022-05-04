@@ -30,8 +30,8 @@ type FileDatas struct {
 	c  ipakku.AppConfig `@autowired:"AppConfig"`
 }
 
-// Pakku 模块加载器接口实现, 返回模块信息&配置
-func (fns *FileDatas) Pakku() ipakku.Opts {
+// AsModule 模块加载器接口实现, 返回模块信息&配置
+func (fns *FileDatas) AsModule() ipakku.Opts {
 	return ipakku.Opts{
 		Name:        "FileDatas",
 		Version:     1.0,

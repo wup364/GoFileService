@@ -22,7 +22,7 @@ import (
 	"strings"
 )
 
-// PakkuFsDriver 本地文件挂载操作驱动
+// PakkuFsDriver 对象存储操作驱动
 type PakkuFsDriver struct {
 	mtn *ifiledatas.MountNode
 	mtm ifiledatas.DIRMount

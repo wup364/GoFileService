@@ -26,8 +26,8 @@ type TransportToken struct {
 	c ipakku.AppCache   `@autowired:"AppCache"`
 }
 
-// Pakku 模块加载器接口实现, 返回模块信息&配置
-func (n *TransportToken) Pakku() ipakku.Opts {
+// AsModule 模块加载器接口实现, 返回模块信息&配置
+func (n *TransportToken) AsModule() ipakku.Opts {
 	return ipakku.Opts{
 		Name:        "TransportToken",
 		Version:     1.0,

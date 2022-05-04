@@ -27,8 +27,8 @@ type BootStart struct {
 	pms service.FilePermission `@autowired:"FilePermission"`
 }
 
-// Pakku Template接口实现
-func (b *BootStart) Pakku() ipakku.Opts {
+// AsModule Template接口实现
+func (b *BootStart) AsModule() ipakku.Opts {
 	return ipakku.Opts{
 		Name:        "BootStart",
 		Version:     1.0,

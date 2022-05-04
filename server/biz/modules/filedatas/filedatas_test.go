@@ -29,7 +29,7 @@ import (
 func TestFileDatas(t *testing.T) {
 	app := pakku.NewApplication("filedatas-test").EnableCoreModule().BootStart()
 	var conf ipakku.AppConfig
-	app.GetModuleByName(new(appconfig.AppConfig).Pakku().Name, &conf)
+	app.GetModuleByName(new(appconfig.AppConfig).AsModule().Name, &conf)
 	// 挂载目录
 	conf.SetConfig(CONFKEY_MOUNT+"./."+CONFKEY_MOUNTTYPE, "LOCAL")
 	conf.SetConfig(CONFKEY_MOUNT+"./."+CONFKEY_MOUNTADDR, os.TempDir())
@@ -38,7 +38,7 @@ func TestFileDatas(t *testing.T) {
 	// conf.SetConfig(CONFKEY_MOUNT+"./test."+CONFKEY_MOUNTADDR, "D:\\"+app.GetInstanceID())
 	// 获取对象
 	var fsm service.FileDatas
-	app.LoadModule(new(FileDatas)).GetModuleByName(new(FileDatas).Pakku().Name, &fsm)
+	app.LoadModule(new(FileDatas)).GetModuleByName(new(FileDatas).AsModule().Name, &fsm)
 	defer fileutil.RemoveAll(os.TempDir() + "/" + app.GetInstanceID())
 	defer fileutil.RemoveAll(os.TempDir() + "/.sys")
 	// 测试 GetDirList

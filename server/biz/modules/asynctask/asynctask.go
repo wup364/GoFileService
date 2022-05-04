@@ -24,8 +24,8 @@ type AsyncTask struct {
 	actions map[string]service.AsyncTaskExecI
 }
 
-// Pakku 模块加载器接口实现, 返回模块信息&配置
-func (m *AsyncTask) Pakku() ipakku.Opts {
+// AsModule 模块加载器接口实现, 返回模块信息&配置
+func (m *AsyncTask) AsModule() ipakku.Opts {
 	return ipakku.Opts{
 		Name:        "AsyncTask",
 		Version:     1.0,
