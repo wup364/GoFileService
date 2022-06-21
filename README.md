@@ -31,8 +31,8 @@
 
 | 目录     | 文件             | 描述                                       |
 | -------- | ---------------- | ------------------------------------------ |
-| /conf    | fileservice.json | 程序配置文件, 如: 目录挂载信息、监听端口等 |
-| /conf    | key.pem,cert.pem | https 证书存放位置, 有配置则启用 https     |
+| /.conf    | fileservice.json | 程序配置文件, 如: 目录挂载信息、监听端口等 |
+| /.conf    | key.pem,cert.pem | https 证书存放位置, 有配置则启用 https     |
 | /webapps | \*               | web 页面                                   |
 
 ## 程序配置清单
