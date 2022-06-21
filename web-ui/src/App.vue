@@ -49,6 +49,8 @@ export default {
   overflow: hidden;
   padding: 0px;
   margin: 0px;
+  min-width: 768px;
+  min-height: 600px;
 }
 .page {
   width: 100%;
