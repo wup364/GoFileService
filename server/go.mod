@@ -2,7 +2,7 @@ module fileservice
 
 go 1.14
 
-replace github.com/wup364/pakku => ../../pakku
+// replace github.com/wup364/pakku => ../../pakku
 
 replace opensdk => ../../filestorage/opensdk
 
