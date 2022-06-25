@@ -20,7 +20,8 @@ import (
 	"fileservice/biz/modules/htmlpage"
 	"fileservice/biz/modules/user4rpc"
 	"fileservice/pakkusys"
-	"pakku/ipakku"
+
+	"github.com/wup364/pakku/ipakku"
 )
 
 // RegisterModules 注册需要加载的模块

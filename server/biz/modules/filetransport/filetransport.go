@@ -13,11 +13,12 @@ package filetransport
 
 import (
 	"fileservice/biz/service"
-	"pakku/ipakku"
-	"pakku/utils/fileutil"
-	"pakku/utils/logs"
-	"pakku/utils/strutil"
 	"time"
+
+	"github.com/wup364/pakku/ipakku"
+	"github.com/wup364/pakku/utils/fileutil"
+	"github.com/wup364/pakku/utils/logs"
+	"github.com/wup364/pakku/utils/strutil"
 )
 
 // TransportToken 文件传输token

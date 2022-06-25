@@ -15,13 +15,14 @@ import (
 	"errors"
 	"fileservice/biz/modules/filedatas/ifiledatas"
 	"io"
-	"pakku/utils/fileutil"
-	"pakku/utils/logs"
-	"pakku/utils/strutil"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/wup364/pakku/utils/fileutil"
+	"github.com/wup364/pakku/utils/logs"
+	"github.com/wup364/pakku/utils/strutil"
 )
 
 const (

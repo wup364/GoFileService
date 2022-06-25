@@ -16,10 +16,11 @@ import (
 	"fileservice/biz/modules/filedatas"
 	"fileservice/biz/service"
 	"net/http"
-	"pakku/ipakku"
-	"pakku/utils/serviceutil"
-	"pakku/utils/strutil"
 	"strings"
+
+	"github.com/wup364/pakku/ipakku"
+	"github.com/wup364/pakku/utils/serviceutil"
+	"github.com/wup364/pakku/utils/strutil"
 )
 
 // Preview 文件预览模块

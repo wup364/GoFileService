@@ -14,8 +14,9 @@ package bootstart
 import (
 	"fileservice/biz/constants"
 	"fileservice/biz/service"
-	"pakku/ipakku"
-	"pakku/utils/logs"
+
+	"github.com/wup364/pakku/ipakku"
+	"github.com/wup364/pakku/utils/logs"
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/mattn/go-sqlite3"

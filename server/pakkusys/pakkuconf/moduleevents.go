@@ -12,7 +12,8 @@ package pakkuconf
 
 import (
 	"fileservice/pakkusys"
-	"pakku/ipakku"
+
+	"github.com/wup364/pakku/ipakku"
 )
 
 // checkOverrides 检测是否禁用了某些配置

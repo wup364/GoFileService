@@ -12,8 +12,9 @@ package asynctask
 
 import (
 	"fileservice/biz/service"
-	"pakku/ipakku"
-	"pakku/utils/strutil"
+
+	"github.com/wup364/pakku/ipakku"
+	"github.com/wup364/pakku/utils/strutil"
 )
 
 // NewTaskToken Task token控制

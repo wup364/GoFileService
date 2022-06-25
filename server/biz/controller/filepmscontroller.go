@@ -16,9 +16,10 @@ import (
 	"fileservice/biz/constants"
 	"fileservice/biz/service"
 	"net/http"
-	"pakku/ipakku"
-	"pakku/utils/serviceutil"
 	"strconv"
+
+	"github.com/wup364/pakku/ipakku"
+	"github.com/wup364/pakku/utils/serviceutil"
 )
 
 // FilePermissionCtrl 用户权限管理

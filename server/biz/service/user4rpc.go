@@ -14,8 +14,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"pakku/ipakku"
 	"time"
+
+	"github.com/wup364/pakku/ipakku"
 )
 
 const (

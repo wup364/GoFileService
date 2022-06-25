@@ -15,12 +15,13 @@ import (
 	"fileservice/biz/service"
 	"net/http"
 	"os"
-	"pakku/ipakku"
-	"pakku/utils/logs"
-	"pakku/utils/serviceutil"
-	"pakku/utils/strutil"
 	"sort"
 	"strings"
+
+	"github.com/wup364/pakku/ipakku"
+	"github.com/wup364/pakku/utils/logs"
+	"github.com/wup364/pakku/utils/serviceutil"
+	"github.com/wup364/pakku/utils/strutil"
 )
 
 // NewApiSignature NewApiSignature

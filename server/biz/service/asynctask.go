@@ -12,7 +12,8 @@ package service
 import (
 	"errors"
 	"net/http"
-	"pakku/ipakku"
+
+	"github.com/wup364/pakku/ipakku"
 )
 
 const (

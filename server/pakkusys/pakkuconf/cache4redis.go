@@ -11,11 +11,12 @@ package pakkuconf
 
 import (
 	"context"
-	"pakku/ipakku"
-	"pakku/utils/logs"
-	"pakku/utils/utypes"
 	"strings"
 	"time"
+
+	"github.com/wup364/pakku/ipakku"
+	"github.com/wup364/pakku/utils/logs"
+	"github.com/wup364/pakku/utils/utypes"
 
 	"github.com/go-redis/redis/v8"
 )

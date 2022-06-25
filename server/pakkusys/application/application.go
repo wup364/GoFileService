@@ -14,13 +14,14 @@ package application
 import (
 	"errors"
 	"fileservice/pakkusys/pakkuconf"
-	"pakku"
-	"pakku/ipakku"
-	"pakku/utils/fileutil"
-	"pakku/utils/logs"
 	"path/filepath"
 	"reflect"
 	"sync"
+
+	"github.com/wup364/pakku"
+	"github.com/wup364/pakku/ipakku"
+	"github.com/wup364/pakku/utils/fileutil"
+	"github.com/wup364/pakku/utils/logs"
 )
 
 //pakkuBoot pakkuBoot instance
@@ -78,17 +79,17 @@ func (boot *PakkuBoot) SetLogger(logger, logdir, loglevel string) *PakkuBoot {
 			logs.Panicln(err)
 		}
 		logs.Infoln("Logger output file, path: ", logPath)
-		boot.GetApplication().SetLoggerOutput(file)
+		boot.appBoot.SetLoggerOutput(file)
 	}
 	switch loglevel {
 	case "none":
-		boot.GetApplication().SetLoggerLevel(logs.NONE)
+		boot.appBoot.SetLoggerLevel(logs.NONE)
 	case "error":
-		boot.GetApplication().SetLoggerLevel(logs.ERROR)
+		boot.appBoot.SetLoggerLevel(logs.ERROR)
 	case "info":
-		boot.GetApplication().SetLoggerLevel(logs.INFO)
+		boot.appBoot.SetLoggerLevel(logs.INFO)
 	default:
-		boot.GetApplication().SetLoggerLevel(logs.DEBUG)
+		boot.appBoot.SetLoggerLevel(logs.DEBUG)
 	}
 	return boot
 }
@@ -152,8 +153,8 @@ func (boot *PakkuBoot) BootStart() ipakku.Application {
 // BootStartWeb 以web服务方式启动, https证书放在conf目录下自动加载
 func (boot *PakkuBoot) BootStartWeb(debug bool) {
 	// bootstart
-	boot.EnableCoreModule().EnableNetModule().BootStart()
 	boot.GetApplication().SetParam("AppService.debug", debug)
+	boot.EnableCoreModule().EnableNetModule().BootStart()
 	// 获取appservice接口
 	var config ipakku.AppConfig
 	var service ipakku.AppService

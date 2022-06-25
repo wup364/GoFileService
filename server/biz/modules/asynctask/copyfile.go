@@ -16,12 +16,13 @@ import (
 	"errors"
 	"fileservice/biz/service"
 	"net/http"
-	"pakku/ipakku"
-	"pakku/utils/fileutil"
-	"pakku/utils/logs"
-	"pakku/utils/serviceutil"
-	"pakku/utils/strutil"
 	"time"
+
+	"github.com/wup364/pakku/ipakku"
+	"github.com/wup364/pakku/utils/fileutil"
+	"github.com/wup364/pakku/utils/logs"
+	"github.com/wup364/pakku/utils/serviceutil"
+	"github.com/wup364/pakku/utils/strutil"
 )
 
 // CopyFileTokenObject 复制文件Token保存对象

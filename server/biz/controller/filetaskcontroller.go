@@ -14,8 +14,9 @@ package controller
 import (
 	"fileservice/biz/service"
 	"net/http"
-	"pakku/ipakku"
-	"pakku/utils/serviceutil"
+
+	"github.com/wup364/pakku/ipakku"
+	"github.com/wup364/pakku/utils/serviceutil"
 )
 
 // AsyncTaskCtrl 异步处理任务接口

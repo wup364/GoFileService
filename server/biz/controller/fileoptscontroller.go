@@ -16,11 +16,12 @@ import (
 	"fileservice/biz/modules/filedatas"
 	"fileservice/biz/service"
 	"net/http"
-	"pakku/ipakku"
-	"pakku/utils/serviceutil"
-	"pakku/utils/strutil"
 	"path"
 	"strings"
+
+	"github.com/wup364/pakku/ipakku"
+	"github.com/wup364/pakku/utils/serviceutil"
+	"github.com/wup364/pakku/utils/strutil"
 )
 
 // FileOptsCtrl 文件操作接口

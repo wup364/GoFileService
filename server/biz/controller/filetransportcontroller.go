@@ -18,13 +18,14 @@ import (
 	"mime/multipart"
 	"net"
 	"net/http"
-	"pakku/ipakku"
-	"pakku/utils/httpclient"
-	"pakku/utils/logs"
-	"pakku/utils/serviceutil"
-	"pakku/utils/strutil"
 	"strconv"
 	"strings"
+
+	"github.com/wup364/pakku/ipakku"
+	"github.com/wup364/pakku/utils/httpclient"
+	"github.com/wup364/pakku/utils/logs"
+	"github.com/wup364/pakku/utils/serviceutil"
+	"github.com/wup364/pakku/utils/strutil"
 )
 
 // TransportCtrl 文件传输接口

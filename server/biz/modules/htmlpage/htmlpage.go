@@ -14,9 +14,10 @@ package htmlpage
 import (
 	"fileservice/biz/modules/user4rpc"
 	"fileservice/biz/service"
-	"pakku/ipakku"
-	"pakku/utils/logs"
 	"strings"
+
+	"github.com/wup364/pakku/ipakku"
+	"github.com/wup364/pakku/utils/logs"
 
 	"net/http"
 )

@@ -14,8 +14,9 @@ package asynctask
 import (
 	"errors"
 	"fileservice/biz/service"
-	"pakku/ipakku"
-	"pakku/utils/logs"
+
+	"github.com/wup364/pakku/ipakku"
+	"github.com/wup364/pakku/utils/logs"
 )
 
 // AsyncTask 文件异步操作

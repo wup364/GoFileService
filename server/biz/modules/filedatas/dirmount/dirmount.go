@@ -14,9 +14,10 @@ package dirmount
 import (
 	"errors"
 	"fileservice/biz/modules/filedatas/ifiledatas"
-	"pakku/utils/logs"
-	"pakku/utils/strutil"
 	"strings"
+
+	"github.com/wup364/pakku/utils/logs"
+	"github.com/wup364/pakku/utils/strutil"
 )
 
 // 常量

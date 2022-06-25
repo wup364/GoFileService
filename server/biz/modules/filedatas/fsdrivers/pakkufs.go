@@ -16,10 +16,11 @@ import (
 	"fileservice/biz/modules/filedatas/ifiledatas"
 	"io"
 	"opensdk"
-	"pakku/utils/logs"
-	"pakku/utils/strutil"
 	"path/filepath"
 	"strings"
+
+	"github.com/wup364/pakku/utils/logs"
+	"github.com/wup364/pakku/utils/strutil"
 )
 
 // PakkuFsDriver 对象存储操作驱动

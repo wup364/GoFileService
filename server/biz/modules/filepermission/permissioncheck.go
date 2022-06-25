@@ -13,10 +13,11 @@ package filepermission
 
 import (
 	"fileservice/biz/service"
-	"pakku/utils/logs"
-	"pakku/utils/utypes"
 	"path"
 	"strings"
+
+	"github.com/wup364/pakku/utils/logs"
+	"github.com/wup364/pakku/utils/utypes"
 )
 
 // NewPermissionCheck NewPermissionCheck
