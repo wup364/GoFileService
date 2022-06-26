@@ -2,13 +2,14 @@ package pakkuconf
 
 import (
 	"fmt"
-	"pakku/application"
-	"pakku/ipakku"
 	"testing"
+
+	"github.com/wup364/pakku"
+	"github.com/wup364/pakku/ipakku"
 )
 
 func TestCache(t *testing.T) {
-	app := application.NewApplication("T").EnableCoreModule().BootStart()
+	app := pakku.NewApplication("T").EnableCoreModule().BootStart()
 	var conf ipakku.AppConfig
 	if err := app.GetModuleByName("AppConfig", &conf); nil != err {
 		panic(err)
