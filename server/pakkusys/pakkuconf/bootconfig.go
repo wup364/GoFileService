@@ -11,14 +11,14 @@
 package pakkuconf
 
 import (
-	"fileservice/biz/controller"
-	"fileservice/biz/modules/asynctask"
-	"fileservice/biz/modules/bootstart"
-	"fileservice/biz/modules/filedatas"
-	"fileservice/biz/modules/filepermission"
-	"fileservice/biz/modules/filetransport"
-	"fileservice/biz/modules/htmlpage"
-	"fileservice/biz/modules/user4rpc"
+	"fileservice/business/controller"
+	"fileservice/business/modules/asynctask"
+	"fileservice/business/modules/bootstart"
+	"fileservice/business/modules/filedatas"
+	"fileservice/business/modules/filepermission"
+	"fileservice/business/modules/filetransport"
+	"fileservice/business/modules/htmlpage"
+	"fileservice/business/modules/user4rpc"
 	"fileservice/pakkusys"
 
 	"github.com/wup364/pakku/ipakku"
