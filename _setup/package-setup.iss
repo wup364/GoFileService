@@ -1,14 +1,14 @@
 [Setup]
 AppName=File Service
 AppVerName=FileService
-VersionInfoVersion=1.1.0  
-VersionInfoTextVersion=2022-04-14
+VersionInfoVersion=1.1.1  
+VersionInfoTextVersion=2022-06-26
 LicenseFile=package-info\license.txt
 DefaultDirName={code:getInstallDir}
 DefaultGroupName=FileService
 DisableProgramGroupPage=yes
 OutputDir=.\package-result
-OutputBaseFilename=FileService_1.1.0
+OutputBaseFilename=FileService_1.1.1
 Compression=lzma/max
 SolidCompression=yes
 PrivilegesRequired=admin
