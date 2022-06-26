@@ -15,10 +15,10 @@ import (
 	"errors"
 	"fileservice/biz/modules/filedatas/ifiledatas"
 	"io"
-	"opensdk"
 	"path/filepath"
 	"strings"
 
+	"github.com/wup364/filestorage/opensdk"
 	"github.com/wup364/pakku/utils/logs"
 	"github.com/wup364/pakku/utils/strutil"
 )

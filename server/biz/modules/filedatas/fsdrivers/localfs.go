@@ -261,7 +261,7 @@ func (locl *LocalDriver) DoMove(src string, dst string, replace bool) error {
 			if nil != err {
 				return locl.wrapError(src, dst, err)
 			}
-			err = fileutil.MoveFilesAcrossDisk(absSrc, absDst, replace, false, func(srcPath, dstPath string, err error) error {
+			err = fileutil.MoveFilesAcrossDisk(absSrc, absDst, replace, false, func(srcPath, dstPath string, _ error) error {
 				rSrc := locl.getRelativePath(locl.mtn, srcPath)
 				rDst := locl.getRelativePath(dstMountItem, dstPath)
 				return locl.wrapError(rSrc, rDst, errors.New("Move failed: "+rSrc+" -> "+rDst))
